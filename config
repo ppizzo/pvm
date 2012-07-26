@@ -24,3 +24,7 @@ serialdev=/dev/ttyUSB0
 
 # Delay between two RS485 details requests (in seconds)
 details_delay=10
+
+# Delay between two RS485 totals requests (in seconds).
+# Should be a multiple of 'details_delay' otherwise an approximation will be performed
+totals_delay=600

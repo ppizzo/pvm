@@ -14,6 +14,7 @@ config_logfile = c.get("main", "logfile")
 config_loglevel = c.get("main", "loglevel")
 config_serialdev = c.get("main", "serialdev")
 config_details_delay = float(c.get("main", "details_delay"))
+config_totals_delay = float(c.get("main", "totals_delay"))
 
 if config_loglevel == "debug":
     loglevel = logging.DEBUG
