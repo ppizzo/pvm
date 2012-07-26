@@ -1,0 +1,26 @@
+# PVM configuration file
+#
+# IMPORTANT: do not put spaces around '=' sign! Use 'a=x' instead of 'a = x'
+#     the configuration file is also used by shell script and if you put
+#     spaces the config file will not be parsed correctly
+##############################################################################
+
+[main]
+
+# Database filename
+dbfile=pvm.db
+
+# Log filename
+logfile=pvm.log
+
+# Loglevel. Available values: debug, info, warning, error, critical
+loglevel=debug
+
+# SQLite command line tool (used by shell scripts)
+sqlite=sqlite3
+
+# RS485 serial device
+serialdev=/dev/ttyUSB0
+
+# Delay between two RS485 details requests (in seconds)
+details_delay=10
