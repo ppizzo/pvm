@@ -10,17 +10,14 @@
 
 import logging
 import mylib
-import time
-import db
+
 logging.info("PVM started")
 
+import time
 import db
 import rs485
 
 # Start write/read to/from inverter
-#rs485.start_read()
-#rs485.start_details_write()
-#rs485.start_totals_write()
 rs485.start_read_write()
 
 time.sleep(60000)

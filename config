@@ -1,8 +1,8 @@
 # PVM configuration file
 #
 # IMPORTANT: do not put spaces around '=' sign! Use 'a=x' instead of 'a = x'
-#     the configuration file is also used by shell script and if you put
-#     spaces the config file will not be parsed correctly
+#            the configuration file is also used by shell script and if you
+#            put spaces the config file will not be parsed correctly
 ##############################################################################
 
 [main]
@@ -28,3 +28,12 @@ details_delay=10
 # Delay between two RS485 totals requests (in seconds).
 # Should be a multiple of 'details_delay' otherwise an approximation will be performed
 totals_delay=600
+
+# Time to start monitoring
+monitor_start_time=05:00
+
+# Time to stop monitoring
+monitor_stop_time=22:00
+
+# Time to perform housekeeping
+housekeeping_start_time=23:00

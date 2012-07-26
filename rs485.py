@@ -1,6 +1,4 @@
 import serial
-#import fcntl
-#import struct
 import threading
 import time
 import mylib
@@ -28,12 +26,12 @@ try:
 except Exception as e:
     logging.critical(e)
     logging.info("PVM stopping")
-    # FIXME
+    # FIXME: print statement to be removed after development
     print e
     sys.exit()
 
 class AsyncReadWriteRS485(threading.Thread):
-    """Async daily details read thread"""
+    """Async inverter interface class"""
     def __init__(self, ser, details_delay, totals_delay):
         threading.Thread.__init__(self)
         self.ser = ser
@@ -55,17 +53,18 @@ class AsyncReadWriteRS485(threading.Thread):
             else:
                 self.ser.write(DAILY_TOTALS_CMD)
 
-            # Read answer
+            # Read header
             header = self.ser.read(self.initial_chars)[1:]
-            #header = "*010"
+
             data = ""
             timestamp = mylib.timestamp()
 
             # Reads response command type and decide what to do
             command = header[3:4]
             if (command == "0"):
+                # Read remaining chars
                 data = self.ser.read(self.details_remaining_chars)[:-1]
-                #data = "   4 389.7 10.48  4085 236.5 16.58  3922  46  20704 X SP4600"
+
                 daily_details = db.DailyDetails()
                 daily_details.timestamp = timestamp
                 daily_details.status = data[3:4]
@@ -83,8 +82,9 @@ class AsyncReadWriteRS485(threading.Thread):
                 db.write_daily_details(daily_details)
 
             elif (command == "3"):
-                #data = "  4117  20705   3848   3848      8:15    186:52    186:52"
+                # Read remaining chars
                 data = self.ser.read(self.total_remaining_chars)[:-1]
+
                 daily_totals = db.DailyTotals()
                 daily_totals.timestamp = timestamp
                 daily_totals.daily_max_delivered_power = data[1:6]
@@ -104,9 +104,9 @@ class AsyncReadWriteRS485(threading.Thread):
             logging.debug("Inverter: " + header + data)
             count = count + 1
 
-            # Every 10 details, reads 1 total (in this case no delay)
+            # Every 'totals_freq' details, reads 1 total (in this case no delay)
             if (count % self.totals_freq != 0):
-                time.sleep(self.delay)
+                time.sleep(self.details_delay)
 
         logging.info("RS485 read/write thread stopped")
 
@@ -119,9 +119,9 @@ def start_read_write():
     read_write_task.start()
 
 def stop_all():
-    logging.info("Waiting for RS485 threads to stop")
+    logging.info("Waiting for RS485 thread to stop")
     global go
     global read_write_task
     go = False;
     read_write_task.join()
-    logging.info("All RS485 threads stopped")
+    logging.info("RS485 thread stopped")
