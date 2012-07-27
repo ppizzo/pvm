@@ -17,8 +17,9 @@ import time
 import db
 import rs485
 
-# Start write/read to/from inverter
-rs485.start_read_write()
+# Start RS485 threads
+rs485.start_read()
+rs485.start_write()
 
 time.sleep(60000)
 rs485.stop_all()

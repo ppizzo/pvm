@@ -30,28 +30,49 @@ except Exception as e:
     print e
     sys.exit()
 
-class AsyncReadWriteRS485(threading.Thread):
-    """Async inverter interface class"""
+class AsyncWriteRS485(threading.Thread):
+    """Async inverter interface write class"""
     def __init__(self, ser, details_delay, totals_delay):
         threading.Thread.__init__(self)
         self.ser = ser
         self.details_delay = details_delay
         self.totals_delay = totals_delay
         self.totals_freq = int(self.totals_delay / self.details_delay)
-        self.initial_chars = 5
-        self.details_remaining_chars = 66 - self.initial_chars
-        self.total_remaining_chars = 63 - self.initial_chars
     def run(self):
-        logging.info("RS485 read/write thread started")
+        logging.info("RS485 write thread started")
         count = 0
         global go
         while go:
 
             # Write request
-            if (count % self.totals_freq != 0):
-                self.ser.write(DAILY_DETAILS_CMD)
-            else:
+            self.ser.write(DAILY_DETAILS_CMD)
+
+            # Every 'totals_freq' details request total stats
+            if (count % self.totals_freq == 0):
+                count = 0
+                time.sleep(self.details_delay / 2 - 1)
                 self.ser.write(DAILY_TOTALS_CMD)
+                time.sleep(self.details_delay / 2)
+            else:
+                time.sleep(self.details_delay)
+
+            count = count + 1
+
+        logging.info("RS485 write thread stopped")
+
+class AsyncReadRS485(threading.Thread):
+    """Async inverter interface read class"""
+    def __init__(self, ser):
+        threading.Thread.__init__(self)
+        self.ser = ser
+        self.initial_chars = 5
+        self.details_remaining_chars = 66 - self.initial_chars
+        self.total_remaining_chars = 63 - self.initial_chars
+    def run(self):
+        logging.info("RS485 read thread started")
+        count = 0
+        global go
+        while go:
 
             # Read header
             header = self.ser.read(self.initial_chars)[1:]
@@ -102,26 +123,28 @@ class AsyncReadWriteRS485(threading.Thread):
                 # TODO: go ahead until a "*01" string appears and resync the input stream
 
             logging.debug("Inverter: " + header + data)
-            count = count + 1
 
-            # Every 'totals_freq' details, reads 1 total (in this case no delay)
-            if (count % self.totals_freq != 0):
-                time.sleep(self.details_delay)
-
-        logging.info("RS485 read/write thread stopped")
+        logging.info("RS485 read thread stopped")
 
 # Initialization
 fd = ser.fileno()
 
-def start_read_write():
-    global read_write_task
-    read_write_task = AsyncReadWriteRS485(ser, mylib.config_details_delay, mylib.config_totals_delay)
-    read_write_task.start()
+def start_write():
+    global write_task
+    write_task = AsyncWriteRS485(ser, mylib.config_details_delay, mylib.config_totals_delay)
+    write_task.start()
+
+def start_read():
+    global read_task
+    read_task = AsyncReadRS485(ser)
+    read_task.start()
 
 def stop_all():
-    logging.info("Waiting for RS485 thread to stop")
+    logging.info("Waiting for RS485 threads to stop")
     global go
-    global read_write_task
+    global write_task
+    global read_task
     go = False;
-    read_write_task.join()
-    logging.info("RS485 thread stopped")
+    write_task.join()
+    read_task.join()
+    logging.info("All RS485 threads stopped")
