@@ -22,7 +22,7 @@ sqlite=sqlite3
 # RS485 serial device
 serialdev=/dev/ttyUSB0
 
-# Delay between two RS485 details requests (in seconds)
+# Delay between two RS485 details requests (in seconds, must be > 5)
 details_delay=10
 
 # Delay between two RS485 totals requests (in seconds).
