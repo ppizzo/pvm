@@ -56,6 +56,7 @@ def write_daily_details(d):
         cursor.execute("""insert into daily_details(timestamp, status, generator_voltage,
             generator_current, generator_power, grid_voltage, grid_current, delivered_power,
             device_temperature, daily_yeld) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", vals)
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -70,12 +71,55 @@ def write_daily_totals(d):
         vals = (d.timestamp, d.daily_max_delivered_power, d.daily_delivered_power,
                 d.total_delivered_power, d.partial_delivered_power, d.daily_running_hours,
                 d.total_running_hours, d.partial_running_hours)
+
         cursor.execute("""insert into daily_totals(timestamp, daily_max_delivered_power,
             daily_delivered_power, total_delivered_power, partial_delivered_power,
             daily_running_hours, total_running_hours, partial_running_hours)
             values (?, ?, ?, ?, ?, ?, ?, ?)""", vals)
+
         conn.commit()
         cursor.close()
         conn.close()
     except Exception as e:
         logging.error(e)
+
+
+# Query functions
+def read_daily_details(date):
+    """Retrieves daily stats"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        cursor.execute("""select rowid, time(timestamp) as time, status,
+            generator_voltage, generator_current, generator_power,
+            grid_voltage, grid_current, delivered_power,
+            device_temperature, daily_yeld from daily_details
+            where date(timestamp) = ?""", (date,))
+
+        result = cursor.fetchall()
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return result
+    except Exception as e:
+        logging.error(e)
+
+# Housekeeping functions
+def clean_daily_totals():
+    """Deletes all rows but last one on current day on daily_totals"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        cursor.execute("delete from daily_totals where rowid < (select max(rowid) from daily_totals where date(timestamp)=date()) and date(timestamp)=date()")
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        logging.info("Housekeeping: cleaned up daily totals")
+    except Exception as e:
+        logging.error(e)
+
