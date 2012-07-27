@@ -1,12 +1,12 @@
 import logging
 import datetime
-import ConfigParser
+import configparser
 
 # Config filename
 CONFIG_FILE = "config"
 
 # Confguration file parsing
-c = ConfigParser.ConfigParser()
+c = configparser.ConfigParser()
 c.read(CONFIG_FILE)
 
 config_dbfile = c.get("main", "dbfile")
@@ -35,6 +35,14 @@ else:
 # Logging configuration
 logging.basicConfig(filename=config_logfile, format='%(asctime)s [%(levelname)s] %(message)s', level=loglevel)
 
-def timestamp():
+def datetimestamp():
     """Returns the current timestamp in a format suitable for DB import"""
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def timestamp():
+    """Returns the current time"""
+    return datetime.datetime.now().strftime("%H:%M:%S")
+
+def datestamp():
+    """Returns the current date (without time)"""
+    return datetime.datetime.now().strftime("%Y-%m-%d")

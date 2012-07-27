@@ -27,7 +27,7 @@ except Exception as e:
     logging.critical(e)
     logging.info("PVM stopping")
     # FIXME: print statement to be removed after development
-    print e
+    print(e)
     sys.exit()
 
 class AsyncWriteRS485(threading.Thread):
@@ -78,7 +78,7 @@ class AsyncReadRS485(threading.Thread):
             header = self.ser.read(self.initial_chars)[1:]
 
             data = ""
-            timestamp = mylib.timestamp()
+            timestamp = mylib.datetimestamp()
 
             # Reads response command type and decide what to do
             command = header[3:4]
@@ -138,6 +138,10 @@ def start_read():
     global read_task
     read_task = AsyncReadRS485(ser)
     read_task.start()
+
+def start_all():
+    start_read()
+    start_write()
 
 def stop_all():
     logging.info("Waiting for RS485 threads to stop")
