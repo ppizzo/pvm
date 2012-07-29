@@ -52,13 +52,13 @@ class AsyncWriteRS485(threading.Thread):
         while go:
 
             # Write request
-            self.ser.write(DAILY_DETAILS_CMD)
+            self.ser.write(bytes(DAILY_DETAILS_CMD, "ascii"))
 
             # Every 'totals_freq' details request total stats
             if (count % self.totals_freq == 0):
                 count = 0
                 time.sleep(self.details_delay / 2 - 1)
-                self.ser.write(DAILY_TOTALS_CMD)
+                self.ser.write(bytes(DAILY_TOTALS_CMD, "ascii"))
                 time.sleep(self.details_delay / 2)
             else:
                 time.sleep(self.details_delay)
@@ -77,12 +77,12 @@ class AsyncReadRS485(threading.Thread):
         self.total_remaining_chars = 63 - self.initial_chars
     def run(self):
         logging.info("RS485 read thread started")
-        count, already_read = 0
+        count, already_read = 0, 0
         global go
         while go:
 
             # Read header
-            header = self.ser.read(self.initial_chars - already_read)
+            header = self.ser.read(self.initial_chars - already_read).decode(encoding="ascii", errors="replace")
             already_read = 0
             if (len(header) != self.initial_chars):
                 continue
@@ -93,7 +93,7 @@ class AsyncReadRS485(threading.Thread):
             # Reads response command type and decide what to do
             if (header == DAILY_DETAILS_RES):
                 # Read remaining chars
-                data = self.ser.read(self.details_remaining_chars)
+                data = self.ser.read(self.details_remaining_chars).decode(encoding="ascii", errors="replace")
                 if (len(data) != self.details_remaining_chars):
                     continue
 
@@ -115,12 +115,9 @@ class AsyncReadRS485(threading.Thread):
 
                 db.write_daily_details(daily_details)
 
-                # Overwrite checksum character
-                data[52:53] = "X"
-
-            elif (header == DAILY_TOTAL_RES):
+            elif (header == DAILY_TOTALS_RES):
                 # Read remaining chars
-                data = self.ser.read(self.total_remaining_chars)
+                data = self.ser.read(self.total_remaining_chars).decode(encoding="ascii", errors="replace")
                 if (len(data) != self.total_remaining_chars):
                     continue
 
@@ -141,14 +138,14 @@ class AsyncReadRS485(threading.Thread):
                 db.write_daily_totals(daily_totals)
 
             else:
-                logging.warning("RS485 invalid command response: " + command)
+                logging.warning("RS485 invalid command response: " + header[1:])
 
                 # Go ahead until a "\n*" string appears to resync the input stream
-                skip_prev = self.ser.read(1)
-                skip = self.ser.read(1)
+                skip_prev = self.ser.read(1).decode(encoding="ascii", errors="replace")
+                skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
                 while (skip_prev + skip != "\n*"):
                     skip_prev = skip
-                    skip = self.ser.read(1)
+                    skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
                 already_read = 2
 
             logging.debug("Inverter: " + header[1:] + data[:-1])
