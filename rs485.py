@@ -9,9 +9,16 @@ import logging
 # Handmade sem: True means "continue thread", False means "stop"
 go = True
 
+# Inverter type
+INVERTER_TYPE = "SP4600"
+
 # Inverter commands
 DAILY_DETAILS_CMD = "#010\r"
 DAILY_TOTALS_CMD = "#013\r"
+
+# Inverter responses
+DAILY_DETAILS_RES = "\n*010"
+DAILY_TOTALS_RES = "\n*013"
 
 # Serial port definition
 try:
@@ -65,26 +72,30 @@ class AsyncReadRS485(threading.Thread):
     def __init__(self, ser):
         threading.Thread.__init__(self)
         self.ser = ser
-        self.initial_chars = 5
+        self.initial_chars = len(DAILY_DETAILS_RES)
         self.details_remaining_chars = 66 - self.initial_chars
         self.total_remaining_chars = 63 - self.initial_chars
     def run(self):
         logging.info("RS485 read thread started")
-        count = 0
+        count, already_read = 0
         global go
         while go:
 
             # Read header
-            header = self.ser.read(self.initial_chars)[1:]
+            header = self.ser.read(self.initial_chars - already_read)
+            already_read = 0
+            if (len(header) != self.initial_chars):
+                continue
 
             data = ""
             timestamp = mylib.datetimestamp()
 
             # Reads response command type and decide what to do
-            command = header[3:4]
-            if (command == "0"):
+            if (header == DAILY_DETAILS_RES):
                 # Read remaining chars
-                data = self.ser.read(self.details_remaining_chars)[:-1]
+                data = self.ser.read(self.details_remaining_chars)
+                if (len(data) != self.details_remaining_chars):
+                    continue
 
                 daily_details = db.DailyDetails()
                 daily_details.timestamp = timestamp
@@ -99,19 +110,30 @@ class AsyncReadRS485(threading.Thread):
                 daily_details.daily_yeld = data[45:51]
                 daily_details.checksum = data[52:53]
                 daily_details.inverter_type = data[54:60]
+                if (daily_details.inverter_type != INVERTER_TYPE):
+                    continue
 
                 db.write_daily_details(daily_details)
 
-            elif (command == "3"):
+                # Overwrite checksum character
+                data[52:53] = "X"
+
+            elif (header == DAILY_TOTAL_RES):
                 # Read remaining chars
-                data = self.ser.read(self.total_remaining_chars)[:-1]
+                data = self.ser.read(self.total_remaining_chars)
+                if (len(data) != self.total_remaining_chars):
+                    continue
 
                 daily_totals = db.DailyTotals()
                 daily_totals.timestamp = timestamp
                 daily_totals.daily_max_delivered_power = data[1:6]
                 daily_totals.daily_delivered_power = data[7:13]
-                daily_totals.total_delivered_power = float(data[14:20]) / 10
-                daily_totals.partial_delivered_power = float(data[21:27]) / 10
+                try:
+                    daily_totals.total_delivered_power = float(data[14:20]) / 10
+                    daily_totals.partial_delivered_power = float(data[21:27]) / 10
+                except Exception as e:
+                    logging.warning(e)
+                    continue
                 daily_totals.daily_running_hours = data[28:37].strip()
                 daily_totals.total_running_hours = data[38:47].strip()
                 daily_totals.partial_running_hours = data[48:57].strip()
@@ -120,9 +142,16 @@ class AsyncReadRS485(threading.Thread):
 
             else:
                 logging.warning("RS485 invalid command response: " + command)
-                # TODO: go ahead until a "*01" string appears and resync the input stream
 
-            logging.debug("Inverter: " + header + data)
+                # Go ahead until a "\n*" string appears to resync the input stream
+                skip_prev = self.ser.read(1)
+                skip = self.ser.read(1)
+                while (skip_prev + skip != "\n*"):
+                    skip_prev = skip
+                    skip = self.ser.read(1)
+                already_read = 2
+
+            logging.debug("Inverter: " + header[1:] + data[:-1])
 
         logging.info("RS485 read thread stopped")
 
