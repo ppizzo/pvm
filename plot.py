@@ -14,5 +14,3 @@ def plot_daily_details(date):
             print(field, end="", file=file)
             print("\t", end="", file=file)
         print(row[-1:][0], file=file)
-
-#plot_daily_details("2012-07-27")
