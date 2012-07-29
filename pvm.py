@@ -24,4 +24,4 @@ rs485.start_all()
 
 #rs485.stop_all()
 
-logging.info("PVM stopping")
+#logging.info("PVM stopping")
