@@ -37,6 +37,9 @@ except Exception as e:
     print(e)
     sys.exit()
 
+# Initialization
+fd = ser.fileno()
+
 class AsyncWriteRS485(threading.Thread):
     """Async inverter interface write class"""
     def __init__(self, ser, details_delay, totals_delay):
@@ -72,19 +75,25 @@ class AsyncReadRS485(threading.Thread):
     def __init__(self, ser):
         threading.Thread.__init__(self)
         self.ser = ser
-        self.initial_chars = len(DAILY_DETAILS_RES)
-        self.details_remaining_chars = 66 - self.initial_chars
-        self.total_remaining_chars = 63 - self.initial_chars
+        self.header_chars = len(DAILY_DETAILS_RES)
+        self.details_remaining_chars = 66 - self.header_chars
+        self.total_remaining_chars = 63 - self.header_chars
     def run(self):
         logging.info("RS485 read thread started")
-        count, already_read = 0, 0
         global go
         while go:
 
-            # Read header
-            header = self.ser.read(self.initial_chars - already_read).decode(encoding="ascii", errors="replace")
-            already_read = 0
-            if (len(header) != self.initial_chars):
+            # Go ahead until a "\n*" string appears to identify the starting of header
+            skip_prev = self.ser.read(1).decode(encoding="ascii", errors="replace")
+            skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
+            while (skip_prev + skip != "\n*"):
+                skip_prev = skip
+                skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
+
+            # Read remaining part of header
+            header = skip_prev + skip + self.ser.read(self.header_chars - 2).decode(encoding="ascii", errors="replace")
+            if (len(header) != self.header_chars):
+                logging.warning("Unexpected header length: read " + str(len(header)) + " chars, expected " + str(self.header_chars))
                 continue
 
             data = ""
@@ -95,6 +104,7 @@ class AsyncReadRS485(threading.Thread):
                 # Read remaining chars
                 data = self.ser.read(self.details_remaining_chars).decode(encoding="ascii", errors="replace")
                 if (len(data) != self.details_remaining_chars):
+                    logging.warning("Unexpected data length: read " + str(len(data)) + " chars, expected " + str(self.details_remaining_chars))
                     continue
 
                 daily_details = db.DailyDetails()
@@ -110,10 +120,19 @@ class AsyncReadRS485(threading.Thread):
                 daily_details.daily_yeld = data[45:51]
                 daily_details.checksum = data[52:53]
                 daily_details.inverter_type = data[54:60]
+
+                # Formal checks
                 if (daily_details.inverter_type != INVERTER_TYPE):
+                    logging.warning("Inverter type does not match: found '" +
+                                    daily_details.inverter_type + "', expected '" +
+                                    INVERTER_TYPE + "'")
                     continue
+                #if (daily_details.checksum != checksum(header[1:] + data[:-9])):
+                #    logging.warning("Wrong checksum")
+                #    continue
 
                 db.write_daily_details(daily_details)
+                logging.debug("Inverter: '" + header[1:] + data[:-1] + "'")
 
             elif (header == DAILY_TOTALS_RES):
                 # Read remaining chars
@@ -136,24 +155,19 @@ class AsyncReadRS485(threading.Thread):
                 daily_totals.partial_running_hours = data[48:57].strip()
 
                 db.write_daily_totals(daily_totals)
+                logging.debug("Inverter: '" + header[1:] + data[:-1] + "'")
 
             else:
-                logging.warning("RS485 invalid command response: " + header[1:])
-
-                # Go ahead until a "\n*" string appears to resync the input stream
-                skip_prev = self.ser.read(1).decode(encoding="ascii", errors="replace")
-                skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
-                while (skip_prev + skip != "\n*"):
-                    skip_prev = skip
-                    skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
-                already_read = 2
-
-            logging.debug("Inverter: " + header[1:] + data[:-1])
+                logging.warning("RS485 unhandled or invalid command response: '" + header[1:] + "'")
 
         logging.info("RS485 read thread stopped")
 
-# Initialization
-fd = ser.fileno()
+def checksum(s):
+    """Calculate the checksum of the input string"""
+    c = 0
+    for i in s:
+        c = c + ord(i)
+    return chr(c & 0xff)
 
 def start_write():
     global write_task
