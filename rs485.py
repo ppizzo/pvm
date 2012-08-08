@@ -33,8 +33,6 @@ try:
 except Exception as e:
     logging.critical(e)
     logging.info("PVM stopping")
-    # FIXME: print statement to be removed after development
-    print(e)
     sys.exit()
 
 # Initialization
@@ -83,21 +81,20 @@ class AsyncReadRS485(threading.Thread):
         global go
         while go:
 
-            # Go ahead until a "\n*" string appears to identify the starting of header
+            # Read header: go ahead until a "\n*" string appears to identify
+            # the starting of header and then read the remaining part
             skip_prev = self.ser.read(1).decode(encoding="ascii", errors="replace")
             skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
             while (skip_prev + skip != "\n*"):
                 skip_prev = skip
                 skip = self.ser.read(1).decode(encoding="ascii", errors="replace")
-
-            # Read remaining part of header
             header = skip_prev + skip + self.ser.read(self.header_chars - 2).decode(encoding="ascii", errors="replace")
+
             if (len(header) != self.header_chars):
                 logging.warning("Unexpected header length: read " + str(len(header)) + " chars, expected " + str(self.header_chars))
                 continue
 
-            data = ""
-            timestamp = mylib.datetimestamp()
+            data, timestamp = "", mylib.datetimestamp()
 
             # Reads response command type and decide what to do
             if (header == DAILY_DETAILS_RES):
