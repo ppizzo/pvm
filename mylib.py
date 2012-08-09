@@ -19,7 +19,8 @@ config_monitor_start_time=c.get("main", "monitor_start_time")
 config_monitor_stop_time=c.get("main", "monitor_stop_time")
 config_housekeeping_start_time=c.get("main", "housekeeping_start_time")
 config_output_dir=c.get("main", "output_dir")
-config_plot_file=c.get("main", "plot_file")
+config_daily_details_plot_file=c.get("main", "daily_details_plot_file")
+config_monthly_stats_plot_file=c.get("main", "monthly_stats_plot_file")
 
 if config_loglevel == "debug":
     loglevel = logging.DEBUG

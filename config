@@ -41,5 +41,6 @@ housekeeping_start_time=23:00
 # Output directory for graphs
 output_dir=output
 
-# Plot data file
-plot_file=data.plot
+# Plot data files
+daily_details_plot_file=daily_details.plot
+monthly_stats_plot_file=monthly_stats.plot
