@@ -9,13 +9,14 @@ cd `dirname $0`
 
 # Read configuration file
 eval $(cat config |grep output_dir)
-eval $(cat config |grep plot_file)
+eval $(cat config |grep daily_details_plot_file)
+data_file=$daily_details_plot_file
 
 # Parameters check
 if [ $# -eq 1 ]; then
-    day=$1
+    date_ref=$1
 elif [ $# -eq 0 ]; then
-    day=$(date +"%Y-%m-%d")
+    date_ref=$(date +"%Y-%m-%d")
 else
     echo "Usage: `basename $0` [yyyy-mm-dd]" >&2
     exit 1
@@ -28,29 +29,28 @@ if [ ! -d $output_dir ]; then
 fi
 
 # Create plot data file
-rm -f $plot_file
+rm -f $data_file
 python3 <<EOF
-import mylib
 import plot
-plot.plot_daily_details("${day}")
+plot.plot_daily_details("${date_ref}")
 EOF
 
 cd $output_dir
 
 # Check if the datafile has been created
-if [ ! -r $plot_file ]; then
+if [ ! -r $data_file ]; then
     echo "Datafile not found. Exiting." >&2
     exit 2
 fi
-if [ ! -s $plot_file ]; then
+if [ ! -s $data_file ]; then
     echo "Empty datafile. Exiting." >&2
-    rm -f $plot_file
+    rm -f $data_file
     exit 3
 fi
 
 # Plot data
 gnuplot <<EOF
-set title "${day}"
+set title "${date_ref}"
 set autoscale
 set xdata time
 set timefmt "%H:%M:%S"
@@ -67,11 +67,11 @@ set rmargin 5
 set pointsize 0.1
 
 set terminal png size 1400, 600
-set output "pvm-${day}-daily_details.png"
+set output "pvm-${date_ref}-daily_details.png"
 
-plot "${plot_file}" using 2:9 title "Grid power" with lines axis x1y1, \
-"${plot_file}" using 2:10 title "Temperature" with lines axis x1y2
+plot "${data_file}" using 2:9 title "Grid power" with lines axis x1y1, \
+"${data_file}" using 2:10 title "Temperature" with lines axis x1y2
 EOF
 
 # Clean up
-rm -f $plot_file
+rm -f $data_file
