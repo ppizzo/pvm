@@ -83,6 +83,21 @@ def write_daily_totals(d):
     except Exception as e:
         logging.error(e)
 
+# Housekeeping functions
+def clean_daily_totals():
+    """Deletes all rows but last one on current day on daily_totals"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        cursor.execute("delete from daily_totals where timestamp not in (select max(timestamp) from daily_totals group by date(timestamp))")
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        logging.info("Housekeeping: cleaned up daily totals")
+    except Exception as e:
+        logging.error(e)
 
 # Query functions
 def read_daily_details(date):
@@ -107,19 +122,24 @@ def read_daily_details(date):
     except Exception as e:
         logging.error(e)
 
-# Housekeeping functions
-def clean_daily_totals():
-    """Deletes all rows but last one on current day on daily_totals"""
+def read_monthly_stats(date):
+    """Retrieves monthly stats"""
     try:
         conn = sqlite3.connect(mylib.config_dbfile)
         cursor = conn.cursor()
 
-        cursor.execute("delete from daily_totals where rowid < (select max(rowid) from daily_totals where date(timestamp)=date()) and date(timestamp)=date()")
+        cursor.execute("""select a.rowid, date(a.timestamp),
+            a.daily_delivered_power, b.daily_production
+            from daily_totals a, reference_production b
+            where strftime("%m", a.timestamp) = b.month and
+            strftime("%Y-%m", a.timestamp) = ?""", (date,))
+
+        result = cursor.fetchall()
 
         conn.commit()
         cursor.close()
         conn.close()
-        logging.info("Housekeeping: cleaned up daily totals")
+
+        return result
     except Exception as e:
         logging.error(e)
-
