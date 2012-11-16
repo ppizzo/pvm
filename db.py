@@ -1,3 +1,24 @@
+#
+# PVM PhotoVoltaic Monitor.
+# DB module
+#
+# Copyright (C) 2012 Pietro Pizzo <pietro.pizzo@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
 import mylib
 import sqlite3
 import logging
@@ -110,7 +131,8 @@ def read_daily_details(date):
             generator_voltage, generator_current, generator_power,
             grid_voltage, grid_current, delivered_power,
             device_temperature, daily_yeld from daily_details
-            where date(timestamp) = ?""", (date,))
+            where date(timestamp) = ?
+            order by timestamp""", (date,))
 
         result = cursor.fetchall()
 
@@ -132,7 +154,8 @@ def read_monthly_stats(date):
             a.daily_delivered_power, b.daily_production
             from daily_totals a, reference_production b
             where strftime("%m", a.timestamp) = b.month and
-            strftime("%Y-%m", a.timestamp) = ?""", (date,))
+            strftime("%Y-%m", a.timestamp) = ?
+            order by a.timestamp""", (date,))
 
         result = cursor.fetchall()
 
