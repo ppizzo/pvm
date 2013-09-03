@@ -44,6 +44,10 @@ if [ ! -d $output_dir ]; then
     exit 2
 fi
 
+# Create dirs
+dest_dir=$(echo $date_ref |cut -c 1-7 |tr '-' '/')
+mkdir -p ${output_dir}/$dest_dir
+
 # Create plot data file
 rm -f $data_file
 python3 <<EOF
@@ -83,7 +87,7 @@ set rmargin 5
 set pointsize 0.1
 
 set terminal png size 1400, 600
-set output "pvm-${date_ref}-daily_details.png"
+set output "${dest_dir}/pvm-${date_ref}-daily_details.png"
 
 plot "${data_file}" using 2:9 title "Grid power" with lines axis x1y1, \
 "${data_file}" using 2:10 title "Temperature" with lines axis x1y2

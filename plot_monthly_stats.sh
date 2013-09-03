@@ -44,6 +44,10 @@ if [ ! -d $output_dir ]; then
     exit 2
 fi
 
+# Create dirs
+dest_dir=$(echo $date_ref |cut -c 1-7 |tr '-' '/')
+mkdir -p ${output_dir}/$dest_dir
+
 # Calculate xrange
 date_start=$(date +"%Y-%m-%d" -d "${date_ref}-01 -1 day")
 date_end=$(date +"%Y-%m-%d" -d "${date_ref}-01 +1 month")
@@ -90,7 +94,7 @@ set rmargin 5
 set pointsize 0.1
 
 set terminal png size 1400, 600
-set output "pvm-${date_ref}-monthly_stats.png"
+set output "${dest_dir}/pvm-${date_ref}-monthly_stats.png"
 
 set style fill solid
 set boxwidth 0.5 relative
