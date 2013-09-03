@@ -7,6 +7,9 @@
 
 [main]
 
+# RS485 USB ID, as shown by 'lsusb'
+rs485_usb_id="067b:2303"
+
 # Database filename
 dbfile=pvm.db
 

@@ -24,4 +24,15 @@
 ########################################################################
 
 cd `dirname $0`
+
+# Read configuration file
+eval $(cat config |grep rs485_usb_id)
+
+# Test RS485 presence
+lsusb -d ${rs485_usb_id} >/dev/null 2>&1
+if [ "$?" -ne "0" ]; then
+    echo "RS485 not found. Exiting." >&2
+    exit 1
+fi
+
 nohup ./pvm.py &
