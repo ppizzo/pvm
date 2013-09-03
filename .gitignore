@@ -2,3 +2,5 @@
 *~
 *.db
 *.log
+*.gz
+nohup.out
