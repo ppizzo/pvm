@@ -47,3 +47,4 @@ output_dir=output
 # Plot data files
 daily_details_plot_file=daily_details.plot
 monthly_stats_plot_file=monthly_stats.plot
+yearly_stats_plot_file=yearly_stats.plot

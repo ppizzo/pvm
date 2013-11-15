@@ -2,7 +2,7 @@
 # PVM PhotoVoltaic Monitor.
 # Library module
 #
-# Copyright (C) 2012 Pietro Pizzo <pietro.pizzo@gmail.com>
+# Copyright (C) 2012,2013 Pietro Pizzo <pietro.pizzo@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,6 +42,7 @@ config_housekeeping_start_time=c.get("main", "housekeeping_start_time")
 config_output_dir=c.get("main", "output_dir")
 config_daily_details_plot_file=c.get("main", "daily_details_plot_file")
 config_monthly_stats_plot_file=c.get("main", "monthly_stats_plot_file")
+config_yearly_stats_plot_file=c.get("main", "yearly_stats_plot_file")
 
 if config_loglevel == "debug":
     loglevel = logging.DEBUG
