@@ -128,17 +128,17 @@ class AsyncReadRS485(threading.Thread):
 
                 daily_details = db.DailyDetails()
                 daily_details.timestamp = timestamp
-                daily_details.status = data[3:4]
-                daily_details.generator_voltage = data[5:10]
-                daily_details.generator_current = data[11:16]
-                daily_details.generator_power = data[17:22]
-                daily_details.grid_voltage = data[23:28]
-                daily_details.grid_current = data[29:34]
-                daily_details.delivered_power = data[35:40]
-                daily_details.device_temperature = data[41:44]
-                daily_details.daily_yeld = data[45:51]
-                daily_details.checksum = data[52:53]
-                daily_details.inverter_type = data[54:60]
+                daily_details.status = data[3:4].strip()
+                daily_details.generator_voltage = data[5:10].strip()
+                daily_details.generator_current = data[11:16].strip()
+                daily_details.generator_power = data[17:22].strip()
+                daily_details.grid_voltage = data[23:28].strip()
+                daily_details.grid_current = data[29:34].strip()
+                daily_details.delivered_power = data[35:40].strip()
+                daily_details.device_temperature = data[41:44].strip()
+                daily_details.daily_yeld = data[45:51].strip()
+                daily_details.checksum = data[52:53].strip()
+                daily_details.inverter_type = data[54:60].strip()
 
                 # Formal checks
                 if (daily_details.inverter_type != INVERTER_TYPE):
@@ -163,8 +163,8 @@ class AsyncReadRS485(threading.Thread):
 
                 daily_totals = db.DailyTotals()
                 daily_totals.timestamp = timestamp
-                daily_totals.daily_max_delivered_power = data[1:6]
-                daily_totals.daily_delivered_power = data[7:13]
+                daily_totals.daily_max_delivered_power = data[1:6].strip()
+                daily_totals.daily_delivered_power = data[7:13].strip()
                 try:
                     daily_totals.total_delivered_power = float(data[14:20]) / 10
                     daily_totals.partial_delivered_power = float(data[21:27]) / 10
