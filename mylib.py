@@ -31,6 +31,7 @@ c = configparser.ConfigParser()
 c.read(CONFIG_FILE)
 
 config_dbfile = c.get("main", "dbfile")
+config_rtfile = c.get("main", "rtfile")
 config_logfile = c.get("main", "logfile")
 config_loglevel = c.get("main", "loglevel")
 config_serialdev = c.get("main", "serialdev")
