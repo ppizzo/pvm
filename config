@@ -13,6 +13,9 @@ rs485_usb_id="067b:2303"
 # Database filename
 dbfile=pvm.db
 
+# Filename for real-time statistics
+rtfile=pvm-rt.out
+
 # Log filename
 logfile=pvm.log
 
