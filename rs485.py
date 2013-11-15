@@ -24,6 +24,7 @@ import threading
 import time
 import mylib
 import db
+import rt
 import sys
 import logging
 
@@ -145,11 +146,13 @@ class AsyncReadRS485(threading.Thread):
                                     daily_details.inverter_type + "', expected '" +
                                     INVERTER_TYPE + "'")
                     continue
+                # TODO: fix checksum check (it currently doesn't work)
                 #if (daily_details.checksum != checksum(header[1:] + data[:-9])):
                 #    logging.warning("Wrong checksum")
                 #    continue
 
                 db.write_daily_details(daily_details)
+                rt.write(daily_details)
                 logging.debug("Inverter: '" + header[1:] + data[:-1] + "'")
 
             elif (header == DAILY_TOTALS_RES):
