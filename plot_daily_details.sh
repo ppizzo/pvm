@@ -59,7 +59,7 @@ cd $output_dir
 
 # Check if the datafile has been created
 if [ ! -r $data_file ]; then
-    echo "Datafile not found. Exiting." >&2
+    echo "Datafile not found. Exiting."
     exit 2
 fi
 if [ ! -s $data_file ]; then
