@@ -59,11 +59,11 @@ cd $output_dir
 
 # Check if the datafile has been created
 if [ ! -r $data_file ]; then
-    echo "Datafile not found. Exiting."
-    exit 2
+    echo "Datafile not found. Exiting." >&2
+    exit 3
 fi
 if [ ! -s $data_file ]; then
-    echo "Empty datafile. Exiting." >&2
+    echo "Empty datafile. Exiting."
     rm -f $data_file
     exit 3
 fi
