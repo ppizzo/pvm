@@ -2,7 +2,7 @@
 # PVM PhotoVoltaic Monitor.
 # DB module
 #
-# Copyright (C) 2012 Pietro Pizzo <pietro.pizzo@gmail.com>
+# Copyright (C) 2012,2013 Pietro Pizzo <pietro.pizzo@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,21 +23,6 @@ import mylib
 import sqlite3
 import logging
 import sys
-
-try:
-    # DB initialization and check
-    conn = sqlite3.connect(mylib.config_dbfile)
-    cur = conn.cursor()
-    cur.execute("pragma journal_mode=wal")
-    if (cur.fetchone()[0] != "wal"):
-        logging.warning("Cannot set DB in Write-Ahead Logging (WAL) mode. Expect some queries to fail")
-    cur.close()
-    conn.close()
-    logging.debug("Connected to database")
-except Exception as e:
-    logging.critical(e)
-    logging.info("PVM stopping")
-    sys.exit()
 
 class DailyDetails:
     """Class to hold detail snapshot data (01 request)"""
@@ -64,6 +49,26 @@ class DailyTotals:
     daily_running_hours = None
     total_running_hours = None
     partial_running_hours = None
+
+# Offsets are used in case of power fault. See other comments
+need_offset = False
+daily_details_offset = DailyDetails()
+daily_totals_offset = DailyTotals()
+
+try:
+    # DB initialization and check
+    conn = sqlite3.connect(mylib.config_dbfile)
+    cur = conn.cursor()
+    cur.execute("pragma journal_mode=wal")
+    if (cur.fetchone()[0] != "wal"):
+        logging.warning("Cannot set DB in Write-Ahead Logging (WAL) mode. Expect some queries to fail")
+    cur.close()
+    conn.close()
+    logging.debug("Connected to database")
+except Exception as e:
+    logging.critical(e)
+    logging.info("PVM stopping")
+    sys.exit()
 
 def write_daily_details(d):
     """Writes a daily details line on DB"""
@@ -144,6 +149,47 @@ def read_daily_details(date):
     except Exception as e:
         logging.error(e)
 
+def read_daily_details_last():
+    """Retrieves daily last record (to be used to recover in case of power fault)"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        cursor.execute("""select timestamp, daily_yeld from daily_details
+            where date(timestamp) = ? and
+            rowid = (select max(rowid) from daily_details)""", (mylib.datestamp(),))
+
+        result = cursor.fetchone()
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return result
+    except Exception as e:
+        logging.error(e)
+
+def read_daily_totals_last():
+    """Retrieves daily last record (to be used to recover in case of power fault)"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        cursor.execute("""select timestamp, daily_max_delivered_power, daily_delivered_power, daily_running_hours
+            from daily_totals
+            where date(timestamp) = ? and
+            rowid = (select max(rowid) from daily_totals)""", (mylib.datestamp(),))
+
+        result = cursor.fetchone()
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return result
+    except Exception as e:
+        logging.error(e)
+
 def read_monthly_stats(date):
     """Retrieves monthly stats"""
     try:
@@ -166,3 +212,54 @@ def read_monthly_stats(date):
         return result
     except Exception as e:
         logging.error(e)
+
+def read_yearly_stats(date):
+    """Retrieves yearly stats"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        cursor.execute("""select a.rowid, strftime("%Y-%m", a.timestamp) as themonth,
+            sum(a.daily_delivered_power)/1000, b.monthly_production
+            from daily_totals a, reference_production b
+            where strftime("%m", a.timestamp) = b.month and
+            strftime("%Y", a.timestamp) = ?
+            group by themonth
+            order by a.timestamp""", (date,))
+
+        result = cursor.fetchall()
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return result
+    except Exception as e:
+        logging.error(e)
+
+# If case of fault of the main power the inverter shuts down (even if there's still power from solar grid).
+# When the main power is on again, the inverter daily stats restart from 0, thus losing the production
+# accumulated so far. This issue is addressed reading the last valid value from the database and using it
+# as offset in subsequent writes to the db provided it is higher than the current value (otherwise it means
+# that the software has been restarted without power fault: in this case no action is needed because the counters
+# are not reset)
+
+logging.info("Reading last values from database")
+
+daily_last = read_daily_details_last()
+if (daily_last == None or len(daily_last) == 0):
+    daily_details_offset.daily_yeld = 0
+else:
+    daily_details_offset.timestamp = daily_last[0]
+    daily_details_offset.daily_yeld = daily_last[1]
+
+daily_last = read_daily_totals_last()
+if (daily_last == None or len(daily_last) == 0):
+    daily_totals_offset.daily_max_delivered_power = 0
+    daily_totals_offset.daily_delivered_power = 0
+    daily_totals_offset.daily_running_hours = '0:00'
+else:
+    daily_totals_offset.timestamp = daily_last[0]
+    daily_totals_offset.daily_max_delivered_power = daily_last[1]
+    daily_totals_offset.daily_delivered_power = daily_last[2]
+    daily_totals_offset.daily_running_hours = daily_last[3]
