@@ -5,7 +5,7 @@
 # This script creates the initial PVM database.
 # Warning: all data will be erased!
 #
-# Copyright (C) 2012 Pietro Pizzo <pietro.pizzo@gmail.com>
+# Copyright (C) 2012, 2013 Pietro Pizzo <pietro.pizzo@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,14 @@ eval $(cat config |grep sqlite)
 
 # Create database
 $sqlite $dbfile <<EOF
+
+drop table parameters;
+create table parameters (
+  key text,
+  value text
+);
+
+insert into parameters (key, value) values ('production_month', '2012-07');
 
 drop table daily_details;
 create table daily_details (
