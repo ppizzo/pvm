@@ -24,6 +24,7 @@ import mylib
 import db
 import sys
 import subprocess
+import logging
 
 def write_result(file, result):
     """Write result to file suitable for gnuplot"""
