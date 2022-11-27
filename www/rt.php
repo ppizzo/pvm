@@ -5,7 +5,7 @@
         <meta http-equiv="cache-control" content="no-cache">
         <meta http-equiv="pragma" content="no-cache">
         <meta http-equiv="expires" content="0">
-        <meta http-equiv="refresh" content="10">
+        <meta http-equiv="refresh" content="15">
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/bootstrap-theme.min.css">
         <link rel="stylesheet" href="css/main.css">
