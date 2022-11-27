@@ -50,18 +50,18 @@ mkdir -p ${output_dir}/$dest_dir
 
 # Calculate xrange
 ############################################################################## TO BE MODIFIED
-#date_start=$(date +"%Y-%m-%d" -d "${date_ref}-01 -1 day")
-#date_end=$(date +"%Y-%m-%d" -d "${date_ref}-01 +1 month")
+date_start=$(date +"%Y-%m-%d" -d "${date_ref}-01-01 -1 day")
+date_end=$(date +"%Y-%m-%d" -d "${date_ref}-12-31 +1 day")
 
 # Create plot data file
 rm -f $data_file
 python3 <<EOF
 import plot
 import db
-db.clean_daily_totals()
+#db.clean_daily_totals()
 plot.plot_yearly_stats("${date_ref}")
 EOF
-exit
+
 cd $output_dir
 
 # Check if the datafile has been created
@@ -80,14 +80,15 @@ gnuplot <<EOF
 set title "${date_ref}"
 set autoscale
 set xdata time
-set timefmt "%Y-%m-%d"
-set format x "%d"
-set yrange [0:35000]
+set timefmt "%Y-%m"
+set format x "%m"
+set yrange [0:2000]
 set xrange ["${date_start}":"${date_end}"]
 #set xtics 86400 nomirror rotate by -45
-set xtics 86400 nomirror
+#set xtics 2036800 nomirror
+set xtics 2628000 nomirror
 unset mxtics
-set ytics 5000 nomirror
+set ytics 200 nomirror
 set grid xtics ytics
 
 set bmargin 3
@@ -99,10 +100,10 @@ set output "${dest_dir}/pvm-${date_ref}-yearly_stats.png"
 
 set style fill solid
 set boxwidth 0.5 relative
-set style line 1 lw 4 lc 3
+set style line 1 lw 4 pt 7 ps 2
 
-plot "${data_file}" using 2:3 title "Daily production" with boxes, \
-"${data_file}" using 2:4 title "Reference production" with lines linestyle 1
+plot "${data_file}" using 2:3 title "Monthly production (KW)" with boxes lt rgb "red", \
+"${data_file}" using 2:4 title "Reference production (KW)" with linespoints linestyle 1 lt rgb "blue"
 
 EOF
 

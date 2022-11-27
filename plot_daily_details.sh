@@ -89,8 +89,8 @@ set pointsize 0.1
 set terminal png size 1400, 600
 set output "${dest_dir}/pvm-${date_ref}-daily_details.png"
 
-plot "${data_file}" using 2:9 title "Grid power" with lines axis x1y1, \
-"${data_file}" using 2:10 title "Temperature" with lines axis x1y2
+plot "${data_file}" using 2:9 title "Generator power (W)" with lines axis x1y1 lt rgb "red", \
+"${data_file}" using 2:10 title "Inverter temperature (°C)" with lines axis x1y2 lt rgb "green"
 EOF
 
 # Clean up

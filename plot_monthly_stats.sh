@@ -98,10 +98,10 @@ set output "${dest_dir}/pvm-${date_ref}-monthly_stats.png"
 
 set style fill solid
 set boxwidth 0.5 relative
-set style line 1 lw 4 lc 3
+set style line 1 lw 4
 
-plot "${data_file}" using 2:3 title "Daily production" with boxes, \
-"${data_file}" using 2:4 title "Reference production" with lines linestyle 1
+plot "${data_file}" using 2:3 title "Daily production (W)" with boxes lt rgb "red", \
+"${data_file}" using 2:4 title "Reference production (W)" with lines linestyle 1 lt rgb "blue"
 
 EOF
 
