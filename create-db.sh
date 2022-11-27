@@ -35,8 +35,6 @@ create table parameters (
   value text
 );
 
-insert into parameters (key, value) values ('production_month', '2012-07');
-
 drop table daily_details;
 create table daily_details (
   timestamp text,
