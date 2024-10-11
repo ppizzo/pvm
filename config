@@ -8,7 +8,7 @@
 [main]
 
 # RS485 USB ID, as shown by 'lsusb'
-rs485_usb_id="067b:2303"
+rs485_usb_id="1a86:55d3"
 
 # Directory where to store data and outputs
 data_dir=/data/pvm
@@ -32,10 +32,10 @@ loglevel=debug
 sqlite=sqlite3
 
 # RS485 serial device
-serialdev=/dev/ttyUSB0
+serialdev=/dev/ttyACM0
 
 # Delay between two RS485 details requests (in seconds, must be > 5)
-details_delay=15
+details_delay=10
 
 # Delay between two RS485 totals requests (in seconds).
 # Should be a multiple of 'details_delay' otherwise an approximation will be performed
