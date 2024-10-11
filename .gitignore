@@ -4,3 +4,5 @@
 *.log
 *.gz
 nohup.out
+output
+pvm-rt.out
