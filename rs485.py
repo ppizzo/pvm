@@ -44,9 +44,10 @@ DAILY_TOTALS_RES = "\n*013"
 
 # Serial port definition
 try:
+    logging.info(f"RS485 port: {}")
     ser = serial.Serial(
         port=mylib.config_serialdev,
-        baudrate=9600,
+        baudrate=mylib.config_serialdev_baudrate,
         timeout=None,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
@@ -153,7 +154,7 @@ class AsyncReadRS485(threading.Thread):
 
                 db.write_daily_details(daily_details)
                 rt.write(daily_details)
-                logging.debug("Inverter: '" + header[1:] + data[:-1] + "'")
+                logging.info("Inverter: '" + header[1:] + data[:-1] + "'")
 
             elif (header == DAILY_TOTALS_RES):
                 # Read remaining chars
@@ -176,7 +177,7 @@ class AsyncReadRS485(threading.Thread):
                 daily_totals.partial_running_hours = data[48:57].strip()
 
                 db.write_daily_totals(daily_totals)
-                logging.debug("Inverter: '" + header[1:] + data[:-1] + "'")
+                logging.info("Inverter: '" + header[1:] + data[:-1] + "'")
 
             else:
                 logging.warning("RS485 unhandled or invalid command response: '" + header[1:] + "'")

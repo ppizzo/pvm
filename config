@@ -26,13 +26,16 @@ rtfile=pvm-rt.out
 logfile=pvm.log
 
 # Loglevel. Available values: debug, info, warning, error, critical
-loglevel=debug
+loglevel=info
 
 # SQLite command line tool (used by shell scripts)
 sqlite=sqlite3
 
 # RS485 serial device
 serialdev=/dev/ttyACM0
+
+# RS485 baud rate
+serialdev_baudrate=9600
 
 # Delay between two RS485 details requests (in seconds, must be > 5)
 details_delay=10

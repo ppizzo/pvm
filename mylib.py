@@ -26,24 +26,25 @@ import configparser
 # Config filename
 CONFIG_FILE = "config"
 
+# Timedate utils
+def datetimestamp():
+    """Returns the current timestamp in a format suitable for DB import"""
+    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def timestamp():
+    """Returns the current time"""
+    return datetime.datetime.now().strftime("%H:%M:%S")
+
+def datestamp():
+    """Returns the current date (without time)"""
+    return datetime.datetime.now().strftime("%Y-%m-%d")
+
 # Confguration file parsing
 c = configparser.ConfigParser()
 c.read(CONFIG_FILE)
 
-config_dbfile = c.get("main", "dbfile")
-config_rtfile = c.get("main", "rtfile")
 config_logfile = c.get("main", "logfile")
 config_loglevel = c.get("main", "loglevel")
-config_serialdev = c.get("main", "serialdev")
-config_details_delay = float(c.get("main", "details_delay"))
-config_totals_delay = float(c.get("main", "totals_delay"))
-config_monitor_start_time=c.get("main", "monitor_start_time")
-config_monitor_stop_time=c.get("main", "monitor_stop_time")
-config_housekeeping_start_time=c.get("main", "housekeeping_start_time")
-config_output_dir=c.get("main", "output_dir")
-config_daily_details_plot_file=c.get("main", "daily_details_plot_file")
-config_monthly_stats_plot_file=c.get("main", "monthly_stats_plot_file")
-config_yearly_stats_plot_file=c.get("main", "yearly_stats_plot_file")
 
 if config_loglevel == "debug":
     loglevel = logging.DEBUG
@@ -61,14 +62,19 @@ else:
 # Logging configuration
 logging.basicConfig(filename=config_logfile, format='%(asctime)s [%(levelname)s] %(message)s', level=loglevel)
 
-def datetimestamp():
-    """Returns the current timestamp in a format suitable for DB import"""
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+# Read remaining configuration
+config_dbfile = c.get("main", "dbfile")
+config_rtfile = c.get("main", "rtfile")
+config_serialdev = c.get("main", "serialdev")
+config_serialdev_baudrate = int(c.get("main", "serialdev_baudrate"))
+config_details_delay = float(c.get("main", "details_delay"))
+config_totals_delay = float(c.get("main", "totals_delay"))
+config_monitor_start_time=c.get("main", "monitor_start_time")
+config_monitor_stop_time=c.get("main", "monitor_stop_time")
+config_housekeeping_start_time=c.get("main", "housekeeping_start_time")
+config_output_dir=c.get("main", "output_dir")
+config_daily_details_plot_file=c.get("main", "daily_details_plot_file")
+config_monthly_stats_plot_file=c.get("main", "monthly_stats_plot_file")
+config_yearly_stats_plot_file=c.get("main", "yearly_stats_plot_file")
 
-def timestamp():
-    """Returns the current time"""
-    return datetime.datetime.now().strftime("%H:%M:%S")
-
-def datestamp():
-    """Returns the current date (without time)"""
-    return datetime.datetime.now().strftime("%Y-%m-%d")
+logging.info(f"Configuration: device: {config_serialdev}, baudrate: {config_serialdev_baudrate}, delays (details/totals): {config_details_delay}/{config_totals_delay}")
