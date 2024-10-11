@@ -77,4 +77,4 @@ config_daily_details_plot_file=c.get("main", "daily_details_plot_file")
 config_monthly_stats_plot_file=c.get("main", "monthly_stats_plot_file")
 config_yearly_stats_plot_file=c.get("main", "yearly_stats_plot_file")
 
-logging.info(f"Configuration: device: {config_serialdev}, baudrate: {config_serialdev_baudrate}, delays (details/totals): {config_details_delay}/{config_totals_delay}")
+logging.info(f"Configuration: device: {config_serialdev}, baudrate: {config_serialdev_baudrate}, delays (details/totals): {int(config_details_delay)}/{int(config_totals_delay)}")

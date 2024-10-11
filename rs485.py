@@ -44,7 +44,7 @@ DAILY_TOTALS_RES = "\n*013"
 
 # Serial port definition
 try:
-    logging.info(f"RS485 port: {}")
+    logging.info(f"RS485 initialization")
     ser = serial.Serial(
         port=mylib.config_serialdev,
         baudrate=mylib.config_serialdev_baudrate,
