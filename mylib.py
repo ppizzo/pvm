@@ -65,6 +65,7 @@ logging.basicConfig(filename=config_logfile, format='%(asctime)s [%(levelname)s]
 # Read remaining configuration
 config_dbfile = c.get("main", "dbfile")
 config_rtfile = c.get("main", "rtfile")
+config_rtfile_json = c.get("main", "rtfile_json")
 config_serialdev = c.get("main", "serialdev")
 config_serialdev_baudrate = int(c.get("main", "serialdev_baudrate"))
 config_details_delay = float(c.get("main", "details_delay"))

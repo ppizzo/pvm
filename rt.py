@@ -19,27 +19,26 @@
 #
 ########################################################################
 
+import json
 import mylib
 import db
 import logging
 
+"""Write stats on text file"""
 def write(d):
-    """Write real time statistics on file."""
+    # Write text file
     try:
-        fd = open(mylib.config_rtfile, "w")
+        with open(mylib.config_rtfile, "w") as file:
+            for k, v in vars(d).items():
+                print(k, v, sep="=", end="&", file=file)
     except Exception as e:
-        logging.error(e, "Cannot open \""+mylib.config_rtfile+"\" for writing. Real time stats will not be available")
+        logging.error(f"Error: {e}. Real time stats will not be available")
         return
 
-    print("timestamp=", d.timestamp, "&", sep="", end="", file=fd)
-    print("status=", d.status, "&", sep="", end="", file=fd)
-    print("generator_voltage=", d.generator_voltage, "&", sep="", end="", file=fd)
-    print("generator_current=", d.generator_current, "&", sep="", end="", file=fd)
-    print("generator_power=", d.generator_power, "&", sep="", end="", file=fd)
-    print("grid_voltage=", d.grid_voltage, "&", sep="", end="", file=fd)
-    print("grid_current=", d.grid_current, "&", sep="", end="", file=fd)
-    print("delivered_power=", d.delivered_power, "&", sep="", end="", file=fd)
-    print("device_temperature=", d.device_temperature, "&", sep="", end="", file=fd)
-    print("daily_yeld=", d.daily_yeld, sep="", file=fd)
-
-    fd.close()
+    # Write JSON file
+    try:
+        with open(mylib.config_rtfile_json, "w") as file:
+            json.dump(vars(d), file)
+    except Exception as e:
+        logging.error(f"Error: {e}. Real time stats will not be available")
+        return
