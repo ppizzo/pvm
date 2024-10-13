@@ -45,7 +45,7 @@ def plot_daily_details(date):
 
         file.close()
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def plot_monthly_stats(date):
     """Monthly stats plot"""
@@ -58,7 +58,7 @@ def plot_monthly_stats(date):
 
         file.close()
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def plot_yearly_stats(date):
     """Yearly stats plot"""
@@ -71,4 +71,4 @@ def plot_yearly_stats(date):
 
         file.close()
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")

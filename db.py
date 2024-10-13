@@ -87,7 +87,7 @@ def write_daily_details(d):
         cursor.close()
         conn.close()
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def write_daily_totals(d):
     """Writes a daily totals line on DB"""
@@ -107,7 +107,7 @@ def write_daily_totals(d):
         cursor.close()
         conn.close()
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 # Housekeeping functions
 def clean_daily_totals():
@@ -123,7 +123,7 @@ def clean_daily_totals():
         conn.close()
         logging.info("Housekeeping: cleaned up daily totals")
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 # Query functions
 def read_daily_details(date):
@@ -147,7 +147,7 @@ def read_daily_details(date):
 
         return result
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def read_daily_details_last():
     """Retrieves daily last record (to be used to recover in case of power fault)"""
@@ -167,7 +167,7 @@ def read_daily_details_last():
 
         return result
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def read_daily_totals_last():
     """Retrieves daily last record (to be used to recover in case of power fault)"""
@@ -188,7 +188,7 @@ def read_daily_totals_last():
 
         return result
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def read_monthly_stats(date):
     """Retrieves monthly stats"""
@@ -211,7 +211,7 @@ def read_monthly_stats(date):
 
         return result
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 def read_yearly_stats(date):
     """Retrieves yearly stats"""
@@ -235,7 +235,7 @@ def read_yearly_stats(date):
 
         return result
     except Exception as e:
-        logging.error(e)
+        logging.error(f"Error: {e}")
 
 # If case of fault of the main power the inverter shuts down (even if there's still power from solar grid).
 # When the main power is on again, the inverter daily stats restart from 0, thus losing the production
