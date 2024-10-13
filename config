@@ -20,8 +20,8 @@ output_dir=/data/pvm/output
 dbfile=pvm.db
 
 # Filenames for real-time statistics
-rtfile=pvm-rt.out
-rtfile_json=pvm-rt.json
+rtfile=/data/pvm/pvm-rt.out
+rtfile_json=/data/pvm/www/pvm-rt.json
 
 # Log filename
 logfile=pvm.log
