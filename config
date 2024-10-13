@@ -19,8 +19,9 @@ output_dir=/data/pvm/output
 # Database filename
 dbfile=pvm.db
 
-# Filename for real-time statistics
+# Filenames for real-time statistics
 rtfile=pvm-rt.out
+rtfile_json=pvm-rt.json
 
 # Log filename
 logfile=pvm.log
