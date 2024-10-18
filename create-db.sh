@@ -68,6 +68,21 @@ create table reference_production (
   monthly_production real
 );
 
+drop table realtime;
+create table realtime (
+  timestamp text,
+  status text,
+  generator_voltage real,
+  generator_current real,
+  generator_power real,
+  grid_voltage real,
+  grid_current real,
+  delivered_power real,
+  device_temperature integer,
+  daily_yeld real,
+  inverter_type text
+);
+
 insert into reference_production (month, daily_production, monthly_production) values (1, 11066, 343.032);
 insert into reference_production (month, daily_production, monthly_production) values (2, 13632, 395.323);
 insert into reference_production (month, daily_production, monthly_production) values (3, 19130, 593.028);
