@@ -128,6 +128,26 @@ def write_daily_details(d):
     except Exception as e:
         logging.error(f"Error: {e}")
 
+def write_daily_totals(d):
+    """Writes a daily totals line on DB"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+        vals = (d.timestamp, d.daily_max_delivered_power, d.daily_delivered_power,
+                d.total_delivered_power, d.partial_delivered_power, d.daily_running_hours,
+                d.total_running_hours, d.partial_running_hours)
+
+        cursor.execute("""insert into daily_totals(timestamp, daily_max_delivered_power,
+            daily_delivered_power, total_delivered_power, partial_delivered_power,
+            daily_running_hours, total_running_hours, partial_running_hours)
+            values (?, ?, ?, ?, ?, ?, ?, ?)""", vals)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
 def write_realtime(d):
     """Writes realtime information on DB"""
     try:
