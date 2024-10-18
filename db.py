@@ -159,6 +159,7 @@ def write_realtime(d):
                 d.grid_voltage, d.grid_current, d.delivered_power, d.device_temperature,
                 d.daily_yeld, d.inverter_type)
 
+        cursor.execute("delete from realtime")
         cursor.execute("""insert into realtime(timestamp, status, generator_voltage, generator_current,
             generator_power, grid_voltage, grid_current, delivered_power, device_temperature,
             daily_yeld, inverter_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", vals)
