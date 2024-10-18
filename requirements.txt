@@ -1,2 +1,3 @@
+serial
 taipy
 pandas
