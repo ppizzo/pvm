@@ -8,37 +8,7 @@ import db, mylib
 delay = 15
 
 # Global variables holding data to be shown on the gui
-realtime = {
-    "generator": {
-        "voltage": 220.1234,
-        "current": 1.2345,
-        "power": 1.23543
-    },
-    "grid": {
-        "voltage": 0,
-        "current": 0
-    },
-    "production": {
-        "power": 0,
-        "yeld": 0
-    }
-}
-#daily_stats = {
-#    "Time": [],
-#    "Power": []
-#}
-#monthly_stats = {
-#    "Time": [],
-#    "Production": [],
-#    "Reference production": []
-#}
-#yearly_stats = {
-#    "Time": [],
-#    "Production": [],
-#    "Reference production": []
-#}
-
-daily_stats, monthly_stats, yearly_stats = {}, {}, {}
+realtime, daily_stats, monthly_stats, yearly_stats = {}, {}, {}, {}
 
 # Gui state ID (single user mode)
 state_id = None
@@ -46,33 +16,37 @@ state_id = None
 def create_page():
     # Page layout
     with tgb.Page() as page:
-        tgb.text("# PVM &dash; PhotoVoltaic Monitor", mode="md")
-        tgb.text("## Real time monitoring", mode="md")
+        tgb.text("# PVM &mdash; PhotoVoltaic Monitor", mode="md")
+        tgb.text("⌚️ _{realtime['timestamp'].item()}_", mode="md")
 
         with tgb.layout("1fr 3fr", gap="20px", class_name="align_columns_center"):
             with tgb.part():
-
                 tgb.text("#### ☀️ Generator", mode="md")
-                with tgb.layout("1fr 3fr", gap="20px", class_name="container align_columns_center"):
-                    tgb.part()
-                    with tgb.part():
-                        tgb.text("Voltage: {realtime['generator']['voltage']} V", format="%.1f")
-                        tgb.text("Current: {realtime['generator']['current']} A", format="%.2f")
-                        tgb.text("Power: {realtime['generator']['power']} W")
+                with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
+                    tgb.text("Status")
+                    tgb.text("{realtime['status'].item()}")
+                    tgb.text("Temperature")
+                    tgb.text("{realtime['device_temperature'].item()} ºC")
+                    tgb.text("Voltage")
+                    tgb.text("{realtime['generator_voltage'].item()} V", format="%.1f")
+                    tgb.text("Current")
+                    tgb.text("{realtime['generator_current'].item()} A", format="%.2f")
+                    tgb.text("Power")
+                    tgb.text("{realtime['generator_power'].item()} W")
 
                 tgb.text("#### ⚡️ Grid", mode="md")
-                with tgb.layout("1fr 3fr", gap="20px", class_name="container align_columns_center"):
-                    tgb.part()
-                    with tgb.part():
-                        tgb.text("Voltage: {realtime['grid']['voltage']} V", format="%.1f")
-                        tgb.text("Current: {realtime['grid']['current']} A", format="%.2f")
+                with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
+                    tgb.text("Voltage")
+                    tgb.text("{realtime['grid_voltage'].item()} V", format="%.1f")
+                    tgb.text("Current")
+                    tgb.text("{realtime['grid_current'].item()} A", format="%.2f")
 
                 tgb.text("#### 🔋 Production", mode="md")
-                with tgb.layout("1fr 3fr", gap="20px", class_name="container align_columns_center"):
-                    tgb.part()
-                    with tgb.part():
-                        tgb.text("Delivered: {realtime['production']['power']} W")
-                        tgb.text("Yeld: {realtime['production']['yeld']} W")
+                with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
+                    tgb.text("Daily delivered")
+                    tgb.text("{realtime['delivered_power'].item()} W")
+                    tgb.text("Daily yeld")
+                    tgb.text("{realtime['daily_yeld'].item()} W")
 
             with tgb.part(width="900px"):
                 tgb.chart("{daily_stats}", mode="line", x="Time", y="Power", color="red", height="400px")
@@ -90,16 +64,13 @@ class read(Thread):
         self.gui = gui
 
     def run(self):
-        global daily_stats, monthly_stats, yearly_stats
-        # Read config
-        #mylib.config_dbfile
+        global realtime, daily_stats, monthly_stats, yearly_stats
+
         while True:
-            #value = f"{random.uniform(1000, 5000):.2f}"
-            #daily_stats["Power"].append(value)
-            #daily_stats["Time"].append(len(daily_stats["Power"]))
             daily_stats=db.pread_daily_details(mylib.datestamp())
             monthly_stats=db.pread_monthly_stats(mylib.datestamp())
             yearly_stats=db.pread_yearly_stats(mylib.datestamp())
+            realtime=db.pread_realtime()
 
             if hasattr(self.gui, "_server") and state_id:
                 invoke_callback(self.gui, state_id, update_value) #, (value,))
@@ -112,10 +83,9 @@ def on_init(state: State):
 
 # Update the value within the state
 def update_value(state: State):
-    #state.realtime["generator"]["power"] = daily_stats["Power"][len(daily_stats["Power"])-1]
-    #state.realtime["generator"]["voltage"] = random.uniform(200, 250)
     state.daily_stats = daily_stats
     state.monthly_stats = monthly_stats
+    state.realtime = realtime
 
 if __name__ == "__main__":
     # Create the gui object (here because needed by the read thread)

@@ -222,6 +222,18 @@ def pread_daily_details(date):
     except Exception as e:
         logging.error(f"Error: {e}")
 
+def pread_realtime():
+    """Retrieves realtime stats"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+
+        query=f"select * from realtime"
+
+        return pd.read_sql_query(query, conn)
+
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
 def read_daily_details_last():
     """Retrieves daily last record (to be used to recover in case of power fault)"""
     try:
