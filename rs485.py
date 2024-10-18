@@ -153,6 +153,7 @@ class AsyncReadRS485(threading.Thread):
                 #    continue
 
                 db.write_daily_details(daily_details)
+                db.write_realtime(daily_details)
                 rt.write(daily_details)
                 logging.info("Inverter: '" + header[1:] + data[:-1] + "'")
 

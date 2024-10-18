@@ -20,9 +20,48 @@
 ########################################################################
 
 import mylib
-import sqlite3
-import logging
-import sys
+import sqlite3, pandas as pd
+import logging, sys
+
+inverter_status = {
+    '0': 'Inverter has just switched on',
+    '1': 'Waiting to start',
+    '2': 'Waiting to switch off',
+    '3': 'Constant volt. control',
+    '4': 'Feed-in mode',
+    '8': 'Self test',
+    '9': 'Test mode',
+    '11': 'Power limitation',
+    '60': 'PV voltage too high for feed-in',
+    '61': 'Power Control',
+    '62': 'Standalone mode',
+    '63': 'P(f) frequency-dependent power reduction',
+    '64': 'Output current limiting',
+    '10': 'Temperature inside high in unit',
+    '18': 'Error current switch-off',
+    '19': 'Generator insulation fault',
+    '30': 'Error measurement',
+    '31': 'RCD module error',
+    '32': 'Fault self test',
+    '33': 'Fault DC feed-in',
+    '34': 'Fault communication',
+    '35': 'Protection shutdown (SW)',
+    '36': 'Protection shutdown (HW)',
+    '38': 'Fault PV overvoltage',
+    '41': 'Line failure undervoltage L1',
+    '42': 'Line failure overvoltage L1',
+    '43': 'Line failure undervoltage L2',
+    '44': 'Line failure overvoltage L2',
+    '45': 'Line failure undervoltage L3',
+    '46': 'Line failure overvoltage L3',
+    '47': 'Line failure line-to-line voltage',
+    '48': 'Line failure: underfreq.',
+    '49': 'Line failure: overfreq.',
+    '50': 'Line failure average voltage',
+    '57': 'Waiting reconnect',
+    '58': 'Overtemperature control board ',
+    '59': 'Self test error'
+}
 
 class DailyDetails:
     """Class to hold detail snapshot data (01 request)"""
@@ -89,19 +128,39 @@ def write_daily_details(d):
     except Exception as e:
         logging.error(f"Error: {e}")
 
-def write_daily_totals(d):
-    """Writes a daily totals line on DB"""
+def write_daily_details(d):
+    """Writes a daily details line on DB"""
     try:
         conn = sqlite3.connect(mylib.config_dbfile)
         cursor = conn.cursor()
-        vals = (d.timestamp, d.daily_max_delivered_power, d.daily_delivered_power,
-                d.total_delivered_power, d.partial_delivered_power, d.daily_running_hours,
-                d.total_running_hours, d.partial_running_hours)
+        vals = (d.timestamp, d.status, d.generator_voltage, d.generator_current,
+                d.generator_power, d.grid_voltage, d.grid_current, d.delivered_power,
+                d.device_temperature, d.daily_yeld)
 
-        cursor.execute("""insert into daily_totals(timestamp, daily_max_delivered_power,
-            daily_delivered_power, total_delivered_power, partial_delivered_power,
-            daily_running_hours, total_running_hours, partial_running_hours)
-            values (?, ?, ?, ?, ?, ?, ?, ?)""", vals)
+        cursor.execute("""insert into daily_details(timestamp, status, generator_voltage,
+            generator_current, generator_power, grid_voltage, grid_current, delivered_power,
+            device_temperature, daily_yeld) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", vals)
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
+def write_realtime(d):
+    """Writes realtime information on DB"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+        cursor = conn.cursor()
+
+        status = inverter_status.get(d.status, d.status)
+        vals = (d.timestamp, status, d.generator_voltage, d.generator_current, d.generator_power,
+                d.grid_voltage, d.grid_current, d.delivered_power, d.device_temperature,
+                d.daily_yeld, d.checksum, d.inverter_type)
+
+        cursor.execute("""insert into realtime(timestamp, status, generator_voltage, generator_current,
+            generator_power, grid_voltage, grid_current, delivered_power, device_temperature,
+            daily_yeld, inverter_type) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", vals)
 
         conn.commit()
         cursor.close()
@@ -146,6 +205,18 @@ def read_daily_details(date):
         conn.close()
 
         return result
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
+def pread_daily_details(date):
+    """Retrieves daily stats"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+
+        query=f"select rowid, time(timestamp) as Time, status, generator_voltage, generator_current, generator_power as Power, grid_voltage, grid_current, delivered_power, device_temperature, daily_yeld from daily_details where date(timestamp) = '{date}' order by timestamp"
+
+        return pd.read_sql_query(query, conn)
+
     except Exception as e:
         logging.error(f"Error: {e}")
 
@@ -213,6 +284,19 @@ def read_monthly_stats(date):
     except Exception as e:
         logging.error(f"Error: {e}")
 
+def pread_monthly_stats(date):
+    """Retrieves monthly stats"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+
+        query=f"select a.rowid, date(a.timestamp) as Day, a.daily_delivered_power as 'Daily production', b.daily_production as 'Reference production' from daily_totals a, reference_production b where strftime('%m', a.timestamp) = b.month and strftime('%Y-%m', a.timestamp) = strftime('%Y-%m', '{date}') order by a.timestamp"
+
+        return pd.read_sql_query(query, conn)
+
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
+
 def read_yearly_stats(date):
     """Retrieves yearly stats"""
     try:
@@ -234,6 +318,18 @@ def read_yearly_stats(date):
         conn.close()
 
         return result
+    except Exception as e:
+        logging.error(f"Error: {e}")
+
+def pread_yearly_stats(date):
+    """Retrieves yearly stats"""
+    try:
+        conn = sqlite3.connect(mylib.config_dbfile)
+
+        query=f"select a.rowid, strftime('%Y-%m', a.timestamp) as Month, sum(a.daily_delivered_power)/1000 as 'Monthly production', b.monthly_production as 'Reference production' from daily_totals a, reference_production b where strftime('%m', a.timestamp) = b.month and strftime('%Y', a.timestamp) = strftime('%Y', '{date}') group by Month order by a.timestamp"
+
+        return pd.read_sql_query(query, conn)
+
     except Exception as e:
         logging.error(f"Error: {e}")
 
