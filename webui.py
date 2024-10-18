@@ -43,7 +43,7 @@ def create_page():
 
                 tgb.text("#### 🔋 Production", mode="md")
                 with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
-                    tgb.text("Daily delivered")
+                    tgb.text("Delivered power")
                     tgb.text("{realtime['delivered_power'].item()} W")
                     tgb.text("Daily yeld")
                     tgb.text("{realtime['daily_yeld'].item()} W")
