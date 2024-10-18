@@ -72,8 +72,12 @@ class read(Thread):
             yearly_stats=db.pread_yearly_stats(mylib.datestamp())
             realtime=db.pread_realtime()
 
-            if hasattr(self.gui, "_server") and state_id:
-                invoke_callback(self.gui, state_id, update_value) #, (value,))
+            # Wait until the gui is running. Should be needed only at startup
+            while not hasattr(self.gui, "_server") and state_id:
+                time.sleep(0.5)
+                pass
+
+            invoke_callback(self.gui, state_id, update_value) #, (value,))
             time.sleep(delay)
 
 # Get the state id
