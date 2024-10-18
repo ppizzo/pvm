@@ -85,7 +85,7 @@ def on_init(state: State):
 def update_value(state: State):
     state.daily_stats = daily_stats
     state.monthly_stats = monthly_stats
-    stete.yearly_stats = yearly_stats
+    state.yearly_stats = yearly_stats
     state.realtime = realtime
 
 if __name__ == "__main__":
