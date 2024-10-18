@@ -2,7 +2,10 @@ from taipy.gui import Gui, State, invoke_callback, get_state_id
 import taipy.gui.builder as tgb
 from threading import Thread
 import time, random
-import mylib
+import db, mylib
+
+# Gui refresh delay
+delay = 15
 
 # Global variables holding data to be shown on the gui
 realtime = {
@@ -20,20 +23,22 @@ realtime = {
         "yeld": 0
     }
 }
-daily_stats = {
-    "Time": [],
-    "Power": []
-}
-monthly_stats = {
-    "Time": [],
-    "Production": [],
-    "Reference production": []
-}
-yearly_stats = {
-    "Time": [],
-    "Production": [],
-    "Reference production": []
-}
+#daily_stats = {
+#    "Time": [],
+#    "Power": []
+#}
+#monthly_stats = {
+#    "Time": [],
+#    "Production": [],
+#    "Reference production": []
+#}
+#yearly_stats = {
+#    "Time": [],
+#    "Production": [],
+#    "Reference production": []
+#}
+
+daily_stats, monthly_stats, yearly_stats = {}, {}, {}
 
 # Gui state ID (single user mode)
 state_id = None
@@ -71,11 +76,10 @@ def create_page():
 
             with tgb.part(width="900px"):
                 tgb.chart("{daily_stats}", mode="line", x="Time", y="Power", color="red", height="400px")
-                # tgb.part(height="20px")
-                with tgb.expandable("Monthly stats", expanded=False):
-                    tgb.chart("{monthly_stats}", mode="bar", x="Time", y="Power", color="red", height="400px")
-                with tgb.expandable("Yearly stats", expanded=False):
-                    tgb.chart("{yearly_stats}", mode="bar", x="Time", y="Power", color="red", height="400px")
+                tgb.part(height="20px")
+                tgb.chart("{monthly_stats}", type="bar", x="Day", y__1="Daily production", y__2="Reference production", color__1="red", color__2="blue", height="400px")
+                tgb.part(height="20px")
+                tgb.chart("{yearly_stats}", type="bar", x="Month", y__1="Monthly production", y__2="Reference production", color__1="red", color__2="blue", height="400px")
 
     return page
 
@@ -86,15 +90,20 @@ class read(Thread):
         self.gui = gui
 
     def run(self):
+        global daily_stats, monthly_stats, yearly_stats
         # Read config
         #mylib.config_dbfile
         while True:
-            value = f"{random.uniform(1000, 5000):.2f}"
-            daily_stats["Power"].append(value)
-            daily_stats["Time"].append(len(daily_stats["Power"]))
+            #value = f"{random.uniform(1000, 5000):.2f}"
+            #daily_stats["Power"].append(value)
+            #daily_stats["Time"].append(len(daily_stats["Power"]))
+            daily_stats=db.pread_daily_details(mylib.datestamp())
+            monthly_stats=db.pread_monthly_stats(mylib.datestamp())
+            yearly_stats=db.pread_yearly_stats(mylib.datestamp())
+
             if hasattr(self.gui, "_server") and state_id:
                 invoke_callback(self.gui, state_id, update_value) #, (value,))
-            time.sleep(5)
+            time.sleep(delay)
 
 # Get the state id
 def on_init(state: State):
@@ -103,9 +112,10 @@ def on_init(state: State):
 
 # Update the value within the state
 def update_value(state: State):
-    state.realtime["generator"]["power"] = daily_stats["Power"][len(daily_stats["Power"])-1]
-    state.realtime["generator"]["voltage"] = random.uniform(200, 250)
+    #state.realtime["generator"]["power"] = daily_stats["Power"][len(daily_stats["Power"])-1]
+    #state.realtime["generator"]["voltage"] = random.uniform(200, 250)
     state.daily_stats = daily_stats
+    state.monthly_stats = monthly_stats
 
 if __name__ == "__main__":
     # Create the gui object (here because needed by the read thread)
