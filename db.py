@@ -128,25 +128,6 @@ def write_daily_details(d):
     except Exception as e:
         logging.error(f"Error: {e}")
 
-def write_daily_details(d):
-    """Writes a daily details line on DB"""
-    try:
-        conn = sqlite3.connect(mylib.config_dbfile)
-        cursor = conn.cursor()
-        vals = (d.timestamp, d.status, d.generator_voltage, d.generator_current,
-                d.generator_power, d.grid_voltage, d.grid_current, d.delivered_power,
-                d.device_temperature, d.daily_yeld)
-
-        cursor.execute("""insert into daily_details(timestamp, status, generator_voltage,
-            generator_current, generator_power, grid_voltage, grid_current, delivered_power,
-            device_temperature, daily_yeld) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", vals)
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        logging.error(f"Error: {e}")
-
 def write_realtime(d):
     """Writes realtime information on DB"""
     try:
@@ -156,7 +137,7 @@ def write_realtime(d):
         status = inverter_status.get(d.status, d.status)
         vals = (d.timestamp, status, d.generator_voltage, d.generator_current, d.generator_power,
                 d.grid_voltage, d.grid_current, d.delivered_power, d.device_temperature,
-                d.daily_yeld, d.checksum, d.inverter_type)
+                d.daily_yeld, d.inverter_type)
 
         cursor.execute("""insert into realtime(timestamp, status, generator_voltage, generator_current,
             generator_power, grid_voltage, grid_current, delivered_power, device_temperature,
