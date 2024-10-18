@@ -5,7 +5,7 @@ import time, random
 import db, mylib
 
 # Gui refresh delay
-delay = 15
+delay = mylib.config_details_delay
 
 # Global variables holding data to be shown on the gui
 realtime, daily_stats, monthly_stats, yearly_stats = {}, {}, {}, {}
@@ -85,6 +85,7 @@ def on_init(state: State):
 def update_value(state: State):
     state.daily_stats = daily_stats
     state.monthly_stats = monthly_stats
+    stete.yearly_stats = yearly_stats
     state.realtime = realtime
 
 if __name__ == "__main__":
