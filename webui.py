@@ -67,17 +67,17 @@ class read(Thread):
         global realtime, daily_stats, monthly_stats, yearly_stats
 
         while True:
+            # Read stats from DB
             daily_stats=db.pread_daily_details(mylib.datestamp())
             monthly_stats=db.pread_monthly_stats(mylib.datestamp())
             yearly_stats=db.pread_yearly_stats(mylib.datestamp())
             realtime=db.pread_realtime()
 
-            # Wait until the gui is running. Should be needed only at startup
-            while not hasattr(self.gui, "_server") and state_id:
-                time.sleep(0.5)
-                pass
+            # Wait until the gui is running. Should wait only at startup
+            if hasattr(self.gui, "_server") and state_id:
+                invoke_callback(self.gui, state_id, update_value) #, (value,))
 
-            invoke_callback(self.gui, state_id, update_value) #, (value,))
+            # Interval between gui updates
             time.sleep(delay)
 
 # Get the state id
