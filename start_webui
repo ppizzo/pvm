@@ -1,1 +1,2 @@
 docker run --restart=always --name pvm-web -d -p81:80 -e data_dir=/data -v /data/pvm:/data -v /data/pvm/www:/var/www/html -v /data/pvm/output:/var/www/html/output ppizzo/apache
+docker run --restart=always --name pvm-webui -d -p 82:9000  -v /etc/localtime:/etc/localtime -v `pwd`:/data/pvm -u $(id -u):$(id -g) --entrypoint taipy pvm:latest run webui.py
