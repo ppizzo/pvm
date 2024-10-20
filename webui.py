@@ -2,6 +2,7 @@ from taipy.gui import Gui, State, invoke_callback, get_state_id
 import taipy.gui.builder as tgb
 from threading import Thread
 import time, random
+from datetime import datetime, timedelta
 import db, mylib
 
 # Gui refresh delay
@@ -9,6 +10,7 @@ delay = mylib.config_details_delay
 
 # Global variables holding data to be shown on the gui
 realtime, daily_stats, monthly_stats, yearly_stats = {}, {}, {}, {}
+date = datetime.today()
 
 # Gui state ID (single user mode)
 state_id = None
@@ -17,9 +19,15 @@ def create_page():
     # Page layout
     with tgb.Page() as page:
         tgb.text("# PVM &mdash; PhotoVoltaic Monitor", mode="md")
-        tgb.text("⌚️ _{realtime['timestamp'].item()}_", mode="md")
 
         with tgb.layout("1fr 3fr", gap="20px", class_name="align_columns_center"):
+            tgb.text("⌚️ _{realtime['timestamp'].item()}_", mode="md")
+            with tgb.layout("2 1 1 1 10fr"):
+                tgb.date("{date}", format="PP", on_change="change_date")
+                tgb.button(label="◀", hover_text="Day - 1", on_action="yesterday")
+                tgb.button(label="🗓️", hover_text="Today", on_action="today")
+                tgb.button(label="▶", hover_text="Day + 1", on_action="tomorrow")
+                tgb.part()
             with tgb.part():
                 tgb.text("#### ☀️ Generator", mode="md")
                 with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
@@ -67,15 +75,9 @@ class read(Thread):
         global realtime, daily_stats, monthly_stats, yearly_stats
 
         while True:
-            # Read stats from DB
-            daily_stats=db.pread_daily_details(mylib.datestamp())
-            monthly_stats=db.pread_monthly_stats(mylib.datestamp())
-            yearly_stats=db.pread_yearly_stats(mylib.datestamp())
-            realtime=db.pread_realtime()
-
             # Wait until the gui is running. Should wait only at startup
             if hasattr(self.gui, "_server") and state_id:
-                invoke_callback(self.gui, state_id, update_value) #, (value,))
+                invoke_callback(self.gui, state_id, update_values)
 
             # Interval between gui updates
             time.sleep(delay)
@@ -85,12 +87,40 @@ def on_init(state: State):
     global state_id
     state_id = get_state_id(state)
 
-# Update the value within the state
-def update_value(state: State):
+# Buttons callbacks. The date will be set by change_date
+def yesterday(state: State): change_date(state, "yesterday", date)
+def today(state: State): change_date(state, "today", date)
+def tomorrow(state: State): change_date(state, "tomorrow", date)
+
+# Update the values after a date change
+def change_date(state: State, var, val):
+    global date
+
+    if var == "date":
+        date = val
+    elif var == "yesterday":
+        date -= timedelta(days=1)
+    elif var == "tomorrow":
+        date += timedelta(days=1)
+    elif var == "today":
+        date = datetime.today()
+
+    # Trigger gui refresh
+    update_values(state)
+
+# Update the values within the state
+def update_values(state: State):
+    # Read stats from DB
+    daily_stats = db.pread_daily_details(date)
+    monthly_stats = db.pread_monthly_stats(date)
+    yearly_stats = db.pread_yearly_stats(date)
+    realtime = db.pread_realtime()
+
     state.daily_stats = daily_stats
     state.monthly_stats = monthly_stats
     state.yearly_stats = yearly_stats
     state.realtime = realtime
+    state.date = date
 
 if __name__ == "__main__":
     # Create the gui object (here because needed by the read thread)
