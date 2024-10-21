@@ -303,7 +303,7 @@ def pread_monthly_stats(date):
     try:
         conn = sqlite3.connect(mylib.config_dbfile)
 
-        query=f"select a.rowid, date(a.timestamp) as Day, a.daily_delivered_power as 'Daily production', b.daily_production as 'Reference production' from daily_totals a, reference_production b where strftime('%m', a.timestamp) = b.month and strftime('%Y-%m', a.timestamp) = strftime('%Y-%m', '{date}') order by a.timestamp"
+        query=f"select a.rowid, date(a.timestamp) as Day, max(a.daily_delivered_power) as 'Daily production', b.daily_production as 'Reference production' from daily_totals a, reference_production b where strftime('%m', a.timestamp) = b.month and strftime('%Y-%m', a.timestamp) = strftime('%Y-%m', '{date}') group by Day order by a.timestamp"
 
         return pd.read_sql_query(query, conn)
 
