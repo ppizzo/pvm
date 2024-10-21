@@ -20,9 +20,9 @@ def create_page():
     with tgb.Page() as page:
         tgb.text("# PVM &mdash; PhotoVoltaic Monitor", mode="md")
 
-        with tgb.layout("1 3", gap="20px", class_name="align_column_center"):
+        with tgb.layout("1 3", gap="20px", class_name="align-column-center"):
             tgb.text("⌚️ _{realtime['timestamp'].item()}_", mode="md")
-            with tgb.layout("5 1 1 1 20", class_name="align_columns_center"):
+            with tgb.layout("5 1 1 1 20", class_name="align-columns-center"):
                 tgb.date("{date}", format="PP", on_change="change_date")
                 tgb.button(label="◀", hover_text="Day - 1", on_action="yesterday")
                 tgb.button(label="Today", hover_text="Today", on_action="today")
@@ -30,7 +30,9 @@ def create_page():
                 tgb.part()
             with tgb.part():
                 tgb.text("#### ☀️ Generator", mode="md")
-                with tgb.layout("1 1", class_name="container align_columns_center"):
+                with tgb.layout("1 1", class_name="container align-columns-center"):
+                    tgb.text("Power", class_name="h5 color-primary")
+                    tgb.text("{realtime['generator_power'].item()} W", class_name="h5 color-primary")
                     tgb.text("Status")
                     tgb.text("{realtime['status'].item()}")
                     tgb.text("Temperature")
@@ -39,18 +41,16 @@ def create_page():
                     tgb.text("{realtime['generator_voltage'].item()} V", format="%.1f")
                     tgb.text("Current")
                     tgb.text("{realtime['generator_current'].item()} A", format="%.2f")
-                    tgb.text("Power")
-                    tgb.text("{realtime['generator_power'].item()} W")
 
                 tgb.text("#### ⚡️ Grid", mode="md")
-                with tgb.layout("1 1", class_name="container align_columns_center"):
+                with tgb.layout("1 1", class_name="container align-columns-center"):
                     tgb.text("Voltage")
                     tgb.text("{realtime['grid_voltage'].item()} V", format="%.1f")
                     tgb.text("Current")
                     tgb.text("{realtime['grid_current'].item()} A", format="%.2f")
 
                 tgb.text("#### 🔋 Production", mode="md")
-                with tgb.layout("1 1", class_name="container align_columns_center"):
+                with tgb.layout("1 1", class_name="container align-columns-center"):
                     tgb.text("Delivered power")
                     tgb.text("{realtime['delivered_power'].item()} W")
                     tgb.text("Daily yeld")
