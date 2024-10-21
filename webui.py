@@ -4,13 +4,17 @@ from threading import Thread
 import time, random
 from datetime import datetime, timedelta
 import db, mylib
+import pandas as pd
 
 # Gui refresh delay
 delay = mylib.config_details_delay
 
 # Global variables holding data to be shown on the gui
-realtime, daily_stats, monthly_stats, yearly_stats = {}, {}, {}, {}
 date = datetime.today().date()
+realtime = db.pread_realtime()
+daily_stats = db.pread_daily_details(date)
+monthly_stats = db.pread_monthly_stats(date)
+yearly_stats = db.pread_yearly_stats(date)
 
 # Gui state ID (single user mode)
 state_id = None
@@ -87,6 +91,12 @@ def on_init(state: State):
     global state_id
     state_id = get_state_id(state)
 
+    # Initialize variables with the correct datatype
+    state.daily_stats = daily_stats
+    state.monthly_stats = monthly_stats
+    state.yearly_stats = yearly_stats
+    state.realtime = realtime
+
 # Buttons callbacks. The date will be set by change_date
 def yesterday(state: State): change_date(state, "yesterday", date)
 def today(state: State): change_date(state, "today", date)
@@ -110,12 +120,11 @@ def change_date(state: State, var, val):
 
 # Update the values within the state
 def update_values(state: State):
-    # Read stats from DB
-    state.daily_stats = db.pread_daily_details(date)
-    state.monthly_stats = db.pread_monthly_stats(date)
-    state.yearly_stats = db.pread_yearly_stats(date)
+    # Read stats from DB. Updates graphs only if changed, to avoid unnecessary flickering
+    if not (daily_stats := db.pread_daily_details(date)).equals(state.daily_stats): state.daily_stats = daily_stats
+    if not (monthly_stats := db.pread_monthly_stats(date)).equals(state.monthly_stats): state.monthly_stats = monthly_stats
+    if not (yearly_stats := db.pread_yearly_stats(date)).equals(state.yearly_stats): state.yearly_stats = yearly_stats
     state.realtime = db.pread_realtime()
-
     state.date = date
 
 if __name__ == "__main__":
