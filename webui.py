@@ -3,10 +3,10 @@ import taipy.gui.builder as tgb
 from threading import Thread
 import time, random
 from datetime import datetime, timedelta
-import db #, mylib
+import db, mylib
 
 # Gui refresh delay
-delay = 5 #mylib.config_details_delay
+delay = mylib.config_details_delay
 
 # Global variables holding data to be shown on the gui
 realtime, daily_stats, monthly_stats, yearly_stats = {}, {}, {}, {}
@@ -20,7 +20,7 @@ def create_page():
     with tgb.Page() as page:
         tgb.text("# PVM &mdash; PhotoVoltaic Monitor", mode="md")
 
-        with tgb.layout("1 3", gap="20px", class_name="align-column-center"):
+        with tgb.layout("2 5", gap="20px", class_name="align-column-center"):
             tgb.text("⌚️ _{realtime['timestamp'].item()}_", mode="md")
             with tgb.layout("5 1 1 1 20", class_name="align-columns-center"):
                 tgb.date("{date}", format="PP", on_change="change_date")
@@ -31,30 +31,30 @@ def create_page():
             with tgb.part():
                 tgb.text("#### ☀️ Generator", mode="md")
                 with tgb.layout("1 1", class_name="container align-columns-center"):
-                    tgb.text("Power", class_name="h5 color-primary")
-                    tgb.text("{realtime['generator_power'].item()} W", class_name="h5 color-primary")
+                    tgb.text("Power (W)", class_name="h5 color-primary")
+                    tgb.text("{realtime['generator_power'].item()}", format="%.0f", class_name="h5 color-primary")
                     tgb.text("Status")
                     tgb.text("{realtime['status'].item()}")
-                    tgb.text("Temperature")
-                    tgb.text("{realtime['device_temperature'].item()} ºC")
-                    tgb.text("Voltage")
-                    tgb.text("{realtime['generator_voltage'].item()} V", format="%.1f")
-                    tgb.text("Current")
-                    tgb.text("{realtime['generator_current'].item()} A", format="%.2f")
+                    tgb.text("Temperature (ºC)")
+                    tgb.text("{realtime['device_temperature'].item()}", format="%.0f")
+                    tgb.text("Voltage (V)")
+                    tgb.text("{realtime['generator_voltage'].item()}", format="%.1f")
+                    tgb.text("Current (A)")
+                    tgb.text("{realtime['generator_current'].item()}", format="%.2f")
 
                 tgb.text("#### ⚡️ Grid", mode="md")
                 with tgb.layout("1 1", class_name="container align-columns-center"):
-                    tgb.text("Voltage")
-                    tgb.text("{realtime['grid_voltage'].item()} V", format="%.1f")
-                    tgb.text("Current")
-                    tgb.text("{realtime['grid_current'].item()} A", format="%.2f")
+                    tgb.text("Voltage (V)")
+                    tgb.text("{realtime['grid_voltage'].item()}", format="%.1f")
+                    tgb.text("Current (A)")
+                    tgb.text("{realtime['grid_current'].item()}", format="%.2f")
 
                 tgb.text("#### 🔋 Production", mode="md")
                 with tgb.layout("1 1", class_name="container align-columns-center"):
-                    tgb.text("Delivered power")
-                    tgb.text("{realtime['delivered_power'].item()} W")
-                    tgb.text("Daily yeld")
-                    tgb.text("{realtime['daily_yeld'].item()} W")
+                    tgb.text("Delivered power (W)")
+                    tgb.text("{realtime['delivered_power'].item()}", format="%.0f")
+                    tgb.text("Daily yeld (W)")
+                    tgb.text("{realtime['daily_yeld'].item()}", format="%.0f")
 
             with tgb.part(width="900px"):
                 tgb.chart("{daily_stats}", mode="line", x="Time", y="Power", color="red", height="400px")
