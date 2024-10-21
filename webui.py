@@ -3,14 +3,14 @@ import taipy.gui.builder as tgb
 from threading import Thread
 import time, random
 from datetime import datetime, timedelta
-import db, mylib
+import db #, mylib
 
 # Gui refresh delay
-delay = mylib.config_details_delay
+delay = 5 #mylib.config_details_delay
 
 # Global variables holding data to be shown on the gui
 realtime, daily_stats, monthly_stats, yearly_stats = {}, {}, {}, {}
-date = datetime.today()
+date = datetime.today().date()
 
 # Gui state ID (single user mode)
 state_id = None
@@ -20,17 +20,17 @@ def create_page():
     with tgb.Page() as page:
         tgb.text("# PVM &mdash; PhotoVoltaic Monitor", mode="md")
 
-        with tgb.layout("1fr 3fr", gap="20px", class_name="align_columns_center"):
+        with tgb.layout("1 3", gap="20px", class_name="align_column_center"):
             tgb.text("⌚️ _{realtime['timestamp'].item()}_", mode="md")
-            with tgb.layout("2 1 1 1 10fr"):
+            with tgb.layout("5 1 1 1 20", class_name="align_columns_center"):
                 tgb.date("{date}", format="PP", on_change="change_date")
                 tgb.button(label="◀", hover_text="Day - 1", on_action="yesterday")
-                tgb.button(label="🗓️", hover_text="Today", on_action="today")
+                tgb.button(label="Today", hover_text="Today", on_action="today")
                 tgb.button(label="▶", hover_text="Day + 1", on_action="tomorrow")
                 tgb.part()
             with tgb.part():
                 tgb.text("#### ☀️ Generator", mode="md")
-                with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
+                with tgb.layout("1 1", class_name="container align_columns_center"):
                     tgb.text("Status")
                     tgb.text("{realtime['status'].item()}")
                     tgb.text("Temperature")
@@ -43,14 +43,14 @@ def create_page():
                     tgb.text("{realtime['generator_power'].item()} W")
 
                 tgb.text("#### ⚡️ Grid", mode="md")
-                with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
+                with tgb.layout("1 1", class_name="container align_columns_center"):
                     tgb.text("Voltage")
                     tgb.text("{realtime['grid_voltage'].item()} V", format="%.1f")
                     tgb.text("Current")
                     tgb.text("{realtime['grid_current'].item()} A", format="%.2f")
 
                 tgb.text("#### 🔋 Production", mode="md")
-                with tgb.layout("1fr 1fr", class_name="container align_columns_center"):
+                with tgb.layout("1 1", class_name="container align_columns_center"):
                     tgb.text("Delivered power")
                     tgb.text("{realtime['delivered_power'].item()} W")
                     tgb.text("Daily yeld")
@@ -103,7 +103,7 @@ def change_date(state: State, var, val):
     elif var == "tomorrow":
         date += timedelta(days=1)
     elif var == "today":
-        date = datetime.today()
+        date = datetime.today().date()
 
     # Trigger gui refresh
     update_values(state)
@@ -111,15 +111,11 @@ def change_date(state: State, var, val):
 # Update the values within the state
 def update_values(state: State):
     # Read stats from DB
-    daily_stats = db.pread_daily_details(date)
-    monthly_stats = db.pread_monthly_stats(date)
-    yearly_stats = db.pread_yearly_stats(date)
-    realtime = db.pread_realtime()
+    state.daily_stats = db.pread_daily_details(date)
+    state.monthly_stats = db.pread_monthly_stats(date)
+    state.yearly_stats = db.pread_yearly_stats(date)
+    state.realtime = db.pread_realtime()
 
-    state.daily_stats = daily_stats
-    state.monthly_stats = monthly_stats
-    state.yearly_stats = yearly_stats
-    state.realtime = realtime
     state.date = date
 
 if __name__ == "__main__":
