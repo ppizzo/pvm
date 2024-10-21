@@ -135,4 +135,4 @@ if __name__ == "__main__":
     read(gui).start()
 
     # Start webui
-    gui.run(title="PVM", favicon="favicon.ico", single_client=True, host="0.0.0.0", port=9000)
+    gui.run(title="PVM", favicon="favicon.png", single_client=True, host="0.0.0.0", port=9000)
