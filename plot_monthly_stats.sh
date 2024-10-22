@@ -56,8 +56,6 @@ date_end=$(date +"%Y-%m-%d" -d "${date_ref}-01 +1 month")
 rm -f $data_file
 python3 <<EOF
 import plot
-import db
-db.clean_daily_totals()
 plot.plot_monthly_stats("${date_ref}")
 EOF
 

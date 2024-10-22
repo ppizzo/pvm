@@ -142,6 +142,9 @@ def write_daily_totals(d):
             daily_running_hours, total_running_hours, partial_running_hours)
             values (?, ?, ?, ?, ?, ?, ?, ?)""", vals)
 
+        # Housekeeping: deletes all rows from daily_totals but last one
+        cursor.execute("delete from daily_totals where timestamp not in (select max(timestamp) from daily_totals group by date(timestamp))")
+
         conn.commit()
         cursor.close()
         conn.close()
@@ -167,22 +170,6 @@ def write_realtime(d):
         conn.commit()
         cursor.close()
         conn.close()
-    except Exception as e:
-        logging.error(f"Error: {e}")
-
-# Housekeeping functions
-def clean_daily_totals():
-    """Deletes all rows but last one on current day on daily_totals"""
-    try:
-        conn = sqlite3.connect(mylib.config_dbfile)
-        cursor = conn.cursor()
-
-        cursor.execute("delete from daily_totals where timestamp not in (select max(timestamp) from daily_totals group by date(timestamp))")
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-        logging.info("Housekeeping: cleaned up daily totals")
     except Exception as e:
         logging.error(f"Error: {e}")
 
