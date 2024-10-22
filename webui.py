@@ -1,5 +1,4 @@
-from taipy.gui import Gui, State, invoke_callback, get_state_id
-import taipy.gui.builder as tgb
+import taipy as tp, taipy.gui.builder as tgb
 from threading import Thread
 import time, random
 from datetime import datetime, timedelta
@@ -81,15 +80,15 @@ class read(Thread):
         while True:
             # Wait until the gui is running. Should wait only at startup
             if hasattr(self.gui, "_server") and state_id:
-                invoke_callback(self.gui, state_id, update_values)
+                tp.gui.invoke_callback(self.gui, state_id, update_values)
 
             # Interval between gui updates
             time.sleep(delay)
 
 # Get the state id
-def on_init(state: State):
+def on_init(state):
     global state_id
-    state_id = get_state_id(state)
+    state_id = tp.gui.get_state_id(state)
 
     # Initialize variables with the correct datatype
     state.daily_stats = daily_stats
@@ -98,12 +97,12 @@ def on_init(state: State):
     state.realtime = realtime
 
 # Buttons callbacks. The date will be set by change_date
-def yesterday(state: State): change_date(state, "yesterday", date)
-def today(state: State): change_date(state, "today", date)
-def tomorrow(state: State): change_date(state, "tomorrow", date)
+def yesterday(state): change_date(state, "yesterday", date)
+def today(state): change_date(state, "today", date)
+def tomorrow(state): change_date(state, "tomorrow", date)
 
 # Update the values after a date change
-def change_date(state: State, var, val):
+def change_date(state, var, val):
     global date
 
     if var == "date":
@@ -119,7 +118,7 @@ def change_date(state: State, var, val):
     update_values(state)
 
 # Update the values within the state
-def update_values(state: State):
+def update_values(state):
     # Read stats from DB. Updates graphs only if changed, to avoid unnecessary flickering
     if not (daily_stats := db.pread_daily_details(date)).equals(state.daily_stats): state.daily_stats = daily_stats
     if not (monthly_stats := db.pread_monthly_stats(date)).equals(state.monthly_stats): state.monthly_stats = monthly_stats
@@ -129,10 +128,10 @@ def update_values(state: State):
 
 if __name__ == "__main__":
     # Create the gui object (here because needed by the read thread)
-    gui = Gui(create_page())
+    gui = tp.Gui(create_page())
 
     # Start reader thread
     read(gui).start()
 
     # Start webui
-    gui.run(title="PVM", favicon="favicon.png", single_client=True, host="0.0.0.0", port=9000)
+    tp.run(gui, title="PVM", favicon="favicon.png", single_client=True, host="0.0.0.0", port=9000)
