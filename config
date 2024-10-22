@@ -21,7 +21,7 @@ dbfile=/data/pvm/pvm.db
 
 # Filenames for real-time statistics
 rtfile=/data/pvm/pvm-rt.out
-rtfile_json=/data/pvm/www/rt.json
+rtfile_json=/data/pvm/rt.json
 
 # Log filename
 logfile=/data/pvm/pvm.log
