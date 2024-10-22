@@ -28,7 +28,7 @@ def create_page():
             with tgb.layout("5 1 1 1 20", class_name="align-columns-center"):
                 tgb.date("{date}", format="PP", on_change="change_date")
                 tgb.button(label="◀", hover_text="Day - 1", on_action="yesterday")
-                tgb.button(label="Today", hover_text="Today", on_action="today")
+                tgb.button(label="⏏︎", hover_text="Today", on_action="today")
                 tgb.button(label="▶", hover_text="Day + 1", on_action="tomorrow")
                 tgb.part()
             with tgb.part():
