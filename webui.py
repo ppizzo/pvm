@@ -1,6 +1,6 @@
 import taipy as tp, taipy.gui.builder as tgb
 from threading import Thread
-import time, random
+import time, random, gc
 from datetime import datetime, timedelta
 import db, mylib
 import pandas as pd
@@ -81,6 +81,9 @@ class read(Thread):
             # Wait until the gui is running. Should wait only at startup
             if hasattr(self.gui, "_server") and state_id:
                 tp.gui.invoke_callback(self.gui, state_id, update_values)
+
+            # Force garbage collector
+            gc.collect()
 
             # Interval between gui updates
             time.sleep(delay)
